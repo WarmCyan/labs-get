@@ -1,4 +1,7 @@
 env/bin/*
 env/data/*/*
+env/pkg/*
 !env/data/*
 !env/bin
+!env/pkg
+

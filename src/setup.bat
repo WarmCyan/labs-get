@@ -27,14 +27,15 @@ echo Checking environment variables...
 	echo Checking PATH...
 	:: insert clean runnable to bin folder and see if possible to run
 	echo echo Bin directory is in path! > %BIN_DIR%\path_check.bat
-	path_check.bat 2> NUL :: hides error if not found
+	:: call the script and redirect error output to null so no error is displayed (but then check error level)
+	call path_check.bat 2> NUL
 	if errorlevel 1 goto ADDTOPATH
-	del %BIN_DIR%\path_check.bat
-	echo Copying primary program files...
+	del %BIN_DIR%\path_check.bat 
 	goto COPYPRGM
 	
 :: move the powershell script into bin folder
 :COPYPRGM
+	echo Copying primary program files...
 	copy labs-get.ps1 %BIN_DIR%
 	echo Program files located appropriately
 	echo Setting up data files...
@@ -45,7 +46,7 @@ echo Checking environment variables...
 	if not exist %DATA_DIR%\labs-get (md %DATA_DIR%\labs-get)
 	if not exist %PKG_DIR%\labs-get-list goto GETGITLIST
 	if not exist %DATA_DIR%\labs-get\installed.dat (echo name,packagename,url,tags,dependencies > %DATA_DIR%\labs-get\installed.dat)
-	if not exist (%DATA_DIR%\labs-get\default-tags.dat goto GETTAGS
+	if not exist %DATA_DIR%\labs-get\default-tags.dat goto GETTAGS
 	echo All data files properly installed
 	goto END
 
@@ -60,7 +61,12 @@ echo Checking environment variables...
 :: ------functions------
 :ADDTOPATH
 	echo Bin directory wasn't found in the PATH variable
-	setx PATH "%PATH%;%BIN_DIR%"
+
+	:: thanks to http://superuser.com/questions/601015/how-to-update-the-path-user-environment-variable-from-command-line
+	for /f "skip=2 tokens=3*" %%a in ('reg query HKCU\Environment /v PATH') do if [%%b]==[] ( setx PATH "%%~a;%BIN_DIR%" ) else ( setx PATH "%%~a %%~b;%BIN_DIR%" ) 
+	
+	:: also setting local path because setx doesn't affect current session
+	set PATH=%PATH%;%BIN_DIR%
 	echo Added %BIN_DIR% to envrionment PATH
 	goto PATHCHECK
 
