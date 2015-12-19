@@ -1,5 +1,6 @@
 setup:
 
+- set execution policy to be remote-signed
 - check env variables, if not found, set accordingly (after prompting user for paths) note that on linux this means it adds to end of the .bashrc file
 - copy the labs-get file over to the bin
 - prompt for url to git repo that contains a list.dat file
