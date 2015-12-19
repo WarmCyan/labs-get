@@ -1,0 +1,6 @@
+[submodule "pkg/win"]
+	path = pkg/win
+	url = https://WildfireXIII@bitbucket.org/WildfireXIII/labs-get-w-pkg.git
+[submodule "pkg/lx"]
+	path = pkg/lx
+	url = https://WildfireXIII@bitbucket.org/WildfireXIII/labs-get-lx-pkg.git
