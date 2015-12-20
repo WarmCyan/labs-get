@@ -1,7 +1,7 @@
 # ----------------------------------------------------
 #	Labs-Get v0.1.0-w
 #	Date Created: 12/18/2015
-#	Date Edited: 12/18/2015
+#	Date Edited: 12/20/2015
 #	Copyright © 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ----------------------------------------------------
@@ -46,12 +46,14 @@ $LIB_DIR = $env:LIB_DIR
 
 $LIST_DATA_FILE = "$PKG_DIR\labs-get-list\list.dat"
 $INSTALLED_DATA_FILE = "$DATA_DIR\labs-get\installed.dat"
-$DEFAULT_TAGS = "$DATA_DIR\labs-get\default-tags.dat"
+$DEFAULT_TAGS_FILE = "$DATA_DIR\labs-get\default-tags.dat"
 
 # check that needed filepaths exist
 $listDataExists = Test-Path $LIST_DATA_FILE
 $installedDataExists = Test-Path $INSTALLED_DATA_FILE
-$tagsDataExists = Test-Path $DEFAULT_TAGS
+$tagsDataExists = Test-Path $DEFAULT_TAGS_FILE
+
+$DEFAULT_TAGS = Get-Content $DEFAULT_TAGS_FILE
 
 if (!$listDataExists) { Write-Host "ERROR - Couldn't find $LIST_DATA_FILE" -ForegroundColor Red }
 if (!$installedDataExists) { Write-Host "ERROR - Couldn't find $INSTALLED_DATA_FILE" -ForegroundColor Red }
@@ -60,3 +62,403 @@ if (!$tagsDataExists) { Write-Host "ERROR - Couldn't find $DEFAULT_TAGS" -Foregr
 if (!$listDataExists -or !$installedDataExists -or !$tagsDataExists) { Write-Host "Necessary data files could not be found. Please re-run the setup script that came with the package."; exit }
 
 # -------------------------------- FUNCTIONS -----------------------------
+function readListFile()
+{
+	$packages = Get-Content -Path $LIST_DATA_FILE | select -Skip 1
+	return $packages
+}
+
+function readInstalledfile()
+{
+	$packages = Get-Content -Path $INSTALLED_DATA_FILE | select -Skip 1
+	return $packages
+}
+
+function readTotalInstalledFile() # reads in header as well
+{
+	$packages = Get-Content -Path $INSTALLED_DATA_FILE
+	return $packages
+}
+
+function getCSVCol([string]$rowData, [int]$colNum)
+{
+	$currentString = $rowData
+	$currentLength = 0
+	$currentCol = 0
+
+	while($currentString.IndexOf(",") -ne -1 -and $currentCol -lt $colNum)
+	{
+		$index = $currentString.IndexOf(",")
+		$currentCol++
+		if ($currentCol -eq $colNum) # everything after current comma til next comma is desired val
+		{
+			# another comma is found
+			$index2 = $currentString.Substring($index + 1).IndexOf(",")
+			if ($index2 -eq -1) { return $currentString.Substring($index + 1) }
+			else { return $currentString.Substring($index + 1, $index2) }
+		}
+		$currentString = $currentString.Substring($index + 1)
+	}
+
+	# if break out to here, means that it's the first value ($colNum of 0)
+	$index = $currentString.IndexOf(",")
+
+	if ($index -eq -1) { return "NULL" }
+
+	return $currentString.Substring(0, $index)
+}
+
+function getTagList([string]$tagString)
+{
+	$tags = @()
+
+	$currentString = $tagString
+
+	while ($currentString.IndexOf("|") -ne -1)
+	{
+		$index = $currentString.IndexOf("|")
+		$tag = $currentString.Substring(0, $index)
+		$tags += $tag
+		$currentString = $currentString.Substring($index + 1)
+	}
+
+	$tags += $currentString
+
+	return $tags
+}
+
+function filterPackageListByTags([string[]]$list, [array]$filterTags, [bool]$installed)
+{
+	$returnList = @()
+	foreach ($entry in $list)
+	{
+		$entryTagString = ""
+		if (!$installed) { $entryTagString = getCSVCol $entry 4 }
+		else { $entryTagString = getCSVCol $entry 3 }
+
+		$entryTags = getTagList $entryTagString
+
+		$filter = shouldFilter $filterTags $entryTags
+		if (!$filter) { $returnList += $entry }
+	}
+	return $returnList
+}
+
+# based on the passed filter tags and passed tag list, decide whether it gets filtered or not
+# returns true if do NOT include, false if you should include
+function shouldFilter([array]$filterTags, [array]$packageTags)
+{
+	# make sure that the list has EVERY tag
+	$tagsFound = 0;
+	$tagsNeeded = $filterTags.Length
+
+	if ($tagsNeeded -lt 1) { return $false } # if no filters provided, don't filter!
+	
+	foreach ($filterTag in $filterTags)
+	{
+		# check for if the first letter is '!' (means specifically check that something does NOT have that tag)
+		$negativeFilter = $false
+		if ($filterTag.Substring(0,1) -eq "!")
+		{
+			# write-host "SEARCHING FOR NEGATIVE" #DEBUG
+			$filterTag = $filterTag.Substring(1)
+			$negativeFilter = $true
+			$tagsNeeded--
+		}
+		
+		foreach ($tag in $packageTags)
+		{
+			#write-host "comparing (filter, tag): $filterTag $tag" # DEBUG
+			if ($tag -eq $filterTag) 
+			{ 
+				#write-host "FOUND IT!" # DEBUG
+				if (!$negativeFilter) { $tagsFound = $tagsFound + 1; break }
+				else { $tagsFound = -1; break }
+			}
+		}
+	}
+
+	#write-host "found: $tagsFound needed: $tagsNeeded" # DEBUG
+	if ($tagsFound -ge $tagsNeeded) { return $false }
+	return $true
+}
+
+function checkIfPackageInstalled([string]$packageName)
+{
+	$installed = readInstalledFile
+	foreach ($instPkg in $installed)
+	{
+		$instPkgName = getCSVCol $instPkg 0
+		if ($instPkgName -eq $packageName) { return $true }
+	}
+	return $false
+}
+
+function installPackageList([string[]]$packages, [string]$force)
+{
+	foreach ($package in $packages)
+	{
+		$isInstalled = checkIfPackageInstalled $package
+		if ($isInstalled -ne $true)
+		{
+			if ($force -eq "force") { ./labs-get -install $package -forceDependencies -noSpace }
+			else { ./labs-get -install $package -noSpace }
+		}
+		else
+		{
+			echo "Package '$package' was already installed, skipping..."
+		}
+	}
+}
+
+# searches the tag list for passed in tag. Returns true if found, false if not
+function tagListContains([string[]]$tagList, [string]$searchTag)
+{
+	foreach ($tag in $tagList)
+	{
+		if ($tag -eq $searchTag) { return $true }
+	}
+	return $false
+}
+
+function removePackageFromInstalled([string]$packageName)
+{
+	$installed = readTotalInstalledFile
+	del $INSTALLED_DATA_FILE
+	foreach ($instPkg in $installed)
+	{
+		$instPkgName = getCSVCol $instPkg 0
+		if ($instPkgName -ne $packageName) 
+		{ 
+			Add-Content -Path $INSTALLED_DATA_FILE -value $instPkg
+		}
+	}
+}
+
+
+
+# -------------------------------- TESTING -----------------------------
+function testCSV()
+{
+	$packages = readListFile
+	foreach ($package in $packages)
+	{
+		$data = getCSVCol $package 3
+
+		$tagList = getTagList $data
+
+		foreach ($tag in $tagList)
+		{
+			write-host $tag
+		}
+	}
+}
+
+# testCSV
+
+if (!$noSpace) { echo "" }
+
+if ($list -and $otherInfo -eq "update")
+{
+	pushd $PKG_DIR\labs-get-list
+	echo "Fetching package list..."
+	git pull origin -q
+	popd
+
+	# SPAAAACE! I LOVE SPACE!
+	echo ""
+}
+
+if ($list -and $otherInfo -eq "")
+{
+	# read in list file
+	$packages = readListFile
+	$filteredPackages = $packages
+
+	if ($filter -ne "")
+	{
+		$filters = $filter.split(",")
+		$filteredPackages = filterPackageListByTags $packages $filters "list"
+	}
+
+	foreach ($package in $filteredPackages)
+	{
+		$packageName = getCSVCol $package 0
+		$packageDescription = getCSVCol $package 3
+		$packageTagString = getCSVCol $package 4
+		$packageTags = getTagList $packageTagString
+
+		# check if should filter based on default filters
+		$defaultUnfit = $false
+		if ($DEFAULT_TAGS -ne "") { $defaultUnfit = shouldFilter $DEFAULT_TAGS.split(",") $packageTags }
+
+		# list only windows packages
+		if (!$defaultUnfit -or $override)
+		{
+			Write-Host $packageName -ForegroundColor Green -NoNewLine
+			Write-Host " - $packageDescription"
+		}
+	}
+}
+
+if ($list -and $otherInfo -eq "installed")
+{
+	$packages = readInstalledFile
+	$filteredPackages = $packages
+
+	if ($filter -ne "")
+	{
+		$filters = $filter.split(",")
+		$filteredPackages = filterPackageListByTags $packages $filters "installed"
+	}
+	
+	foreach ($package in $filteredPackages)
+	{
+		$name = getCSVCol $package 0
+		write-host $name -ForegroundColor Green
+	}
+}
+
+if ($list -and $otherInfo -eq "tags")
+{
+	$packages = readListFile
+	$filteredPackages = $packages
+
+	if ($filter -ne "")
+	{
+		$filters = $filter.split(",")
+		$filteredPackages = filterPackageListByTags $packages $filters "list"
+	}
+	
+	foreach ($package in $filteredPackages)
+	{
+		$name = getCSVCol $package 0
+		$tagString = getCSVCol $package 4
+
+		$tagsArray = getTagList $tagString
+
+		$defaultUnfit = $false
+		if ($DEFAULT_TAGS -ne "") { $defaultUnfit = shouldFilter $DEFAULT_TAGS.split(",") $tagsArray }
+
+		if ($defaultUnfit -and !$override) { continue; }
+		
+		write-host $name -ForegroundColor Green -NoNewLine
+
+		foreach ($tag in $tagsArray) { write-host " | $tag" -NoNewLine }
+		Write-Host ""
+	}
+}
+
+if ($check)
+{
+	$packages = readInstalledFile
+	$notInstalledList = @()
+	foreach ($package in $packages)
+	{
+		$packageName = getCSVCol $package 0
+
+		$packageDependencies = getCSVCol $package 4
+			
+		if ($packageDependencies -ne "NONE")
+		{
+			$dependencies = getTagList $packageDependencies
+			foreach ($dependency in $dependencies)
+			{
+				$isInstalled = checkIfPackageInstalled $dependency
+				if ($isInstalled -ne $true) { $notInstalledList += $dependency }
+			}
+		}
+	}
+	
+	if ($notInstalledList.Length -eq 0)
+	{
+		echo "All required dependencies are installed."
+		echo ""
+		return
+	}
+
+	echo "The following dependencies are missing: "
+	foreach ($required in $notInstalledList)
+	{
+		write-host $required -ForegroundColor Green
+	}
+}
+
+# UPDATE
+if ($update -ne "")
+{
+	# make sure package exists
+	$isInstalled = checkIfPackageInstalled $update
+	if ($isInstalled -ne $true) { echo "Package '$update' wasn't found.`n"; exit }
+
+	$packages = readInstalledFile
+
+	$packageUninstall = ""
+	
+	# get uninstall stuff
+	foreach ($package in $packages)
+	{
+		$packageName = getCSVCol $package 0
+		if ($packageName -eq $update) { $packageUninstall = getCSVCol $package 3 }
+		break
+	}
+
+	# run uninstall code
+	if ($packageUninstall -ne "NOINSTRUCTIONS") { interpretInstructions $packageUninstall "pkg/$update" }
+	removePackageFromInstalled $update
+
+	# update local package
+	pushd "$ROOT_FOLDER/pkg/$update"
+	git pull origin
+	popd
+
+	# get install stuff
+	$packages = readListFile
+	foreach ($package in $packages)
+	{
+		$packageName = getCSVCol $package 0
+
+		if ($packageName -eq $update)
+		{
+			$packageLink = getCSVCol $package 1
+			$packageDependencies = getCSVCol $package 4
+			$packageTags = getCSVCol $package 3
+			$packageInstallation = getCSVCol $package 5
+			$packageRemoval = getCSVCol $package 6
+			
+			# check dependencies
+			$notInstalledList = @()
+			if ($packageDependencies -ne "NONE")
+			{
+				$dependencies = getTagList $packageDependencies
+				foreach ($dependency in $dependencies)
+				{
+					$isInstalled = checkIfPackageInstalled $dependency
+					if ($isInstalled -ne $true) { $notInstalledList += $dependency }
+				}
+			}
+			
+			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageDependencies,$packageTags,$packageRemoval"
+
+			# run installation instructions
+			if ($packageInstallation -ne "NOINSTRUCTIONS") { interpretInstructions $packageInstallation "pkg/$packageName" }
+
+			# install any required dependencies if user requested
+			if ($notInstalledList.length -gt 0 -and $forceDependencies -ne $true) 
+			{
+				echo ""
+				echo "Package '$packageName' requires (but did not find) the following packages: "
+				foreach ($notInst in $notInstalledList) { write-host "$notInst" -ForegroundColor Yellow }
+				echo ""
+				
+				$userOption = Read-Host -Prompt "Install packages? `n(Y - Yes [Will prompt for any of these dependencies' dependencies], N - No, A - All [Installs all dependencies and their dependencies without prompting again])`n"
+				if ($userOption -eq "Y" -or $userOption -eq "y") { installPackageList $notInstalledList "noforce" }
+				elseif ($userOption -eq "A" -or $userOption -eq "a") { installPackageList $notInstalledList "force" }
+			}
+			elseif ($notInstalledList.length -gt 0 -and $forceDependencies -eq $true) { installPackageList $notInstalledList "force" }
+			
+			break
+		}
+	}
+}
+
