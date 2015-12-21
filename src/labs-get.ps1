@@ -264,9 +264,6 @@ if ($list -and $otherInfo -eq "update")
 	echo "Fetching package list..."
 	git pull origin -q
 	popd
-
-	# SPAAAACE! I LOVE SPACE!
-	echo ""
 }
 
 if ($list -and $otherInfo -eq "")
@@ -278,7 +275,7 @@ if ($list -and $otherInfo -eq "")
 	if ($filter -ne "")
 	{
 		$filters = $filter.split(",")
-		$filteredPackages = filterPackageListByTags $packages $filters "list"
+		$filteredPackages = filterPackageListByTags $packages $filters $false
 	}
 
 	foreach ($package in $filteredPackages)
@@ -462,3 +459,4 @@ if ($update -ne "")
 	}
 }
 
+if (!$noSpace) { echo "" }
