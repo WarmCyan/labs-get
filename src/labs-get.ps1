@@ -235,6 +235,118 @@ function removePackageFromInstalled([string]$packageName)
 	}
 }
 
+function getPackageInstallInstructions([string]$packageRealName)
+{
+	pushd $PKG_DIR\$packageRealName
+	$lines = Get-Content _PKG
+	$instructions = ""
+	foreach ($line in $lines)
+	{
+		if ($line.StartsWith("install="))
+		{
+			$instructions = $line.Substring($line.IndexOf("=") + 1)
+			break
+		}
+	}
+	if ($instructions -eq "") { Write-Host "WARNING: No installation instructions found in the package info" -ForegroundColor red }
+	return $instructions
+}
+
+function getPackageRemoveInstructions([string]$packageRealName)
+{
+	pushd $PKG_DIR\$packageRealName
+	$lines = Get-Content _PKG
+	$instructions = ""
+	foreach ($line in $lines)
+	{
+		if ($line.StartsWith("remove="))
+		{
+			$instructions = $line.Substring($line.IndexOf("=") + 1)
+			break
+		}
+	}
+	if ($instructions -eq "") { Write-Host "WARNING: No remove instructions found in the package info" -ForegroundColor red }
+	return $instructions
+}
+
+function carryOutInstruction([string]$instruction, [string]$packagePath)
+{
+	#pushd $ROOT_FOLDER # all paths in instructions should be based on labs root folder
+
+	#substitute any path variable strings
+	$instruction = $instruction -replace '$BIN_DIR' $BIN_DIR
+	$instruction = $instruction -replace '$PKG_DIR' $PKG_DIR
+	$instruction = $instruction -replace '$CONF_DIR' $CONF_DIR
+	$instruction = $instruction -replace '$LIB_DIR' $LIB_DIR
+	$instruction = $instruction -replace '$DATA_DIR' $DATA_DIR
+	
+	if ($instruction.IndexOf(">") -ne -1) # simple file transfer instruction
+	{
+		$delimiterIndex = $instruction.IndexOf(">")
+		$file = $instruction.Substring(0, $delimiterIndex)
+		$dest = $instruction.Substring($delimiterIndex + 1)
+
+		Write-Host "Copying from $packagePath\$file to $dest\$file"
+		copy "$packagePath\$file" "$dest\"
+	}
+	elseif ($instruction.IndexOf("~") -ne -1)
+	{
+		$index = $instruction.IndexOf("~")
+		$runnableName = $instruction.Substring(0, $index)
+		
+		$instruction = $instruction.Substring($index + 1)
+		$index = $instruction.IndexOf("~")
+		$runnableThing = $instruction.Substring(0, $index)
+
+		$runnablePath = $instruction.Substring($index + 1)
+		
+		$runnableContent = "@echo off`n$runnableThing %*"
+
+		Write-Host "Creating $runnablePath\$runnableName.bat"
+
+		Add-Content -Path "$runnablePath\$runnableName.bat" -value $runnableContent
+	}
+	elseif ($instruction.IndexOf("+") -ne -1)
+	{
+		$index = $instruction.IndexOf("+")
+		$folderName = $instruction.Substring(0, $index)
+		$folderPath = $instruction.Substring($index + 1)
+
+		Write-Host "Creating folder $folderPath\$folderName"
+		md "$folderPath\$folderName" | Out-Null
+	}
+	elseif ($instruction.IndexOf("<") -ne -1)
+	{
+		$index = $instruction.IndexOf("<")
+		$fileName = $instruction.Substring(0, $index)
+		$filePath = $instruction.Substring($index + 1)
+
+		# check for script removal
+		if ($filePath.Substring(0, 1) -eq "<")
+		{
+			Write-Host "Deleting $filePath\$fileName"
+			$filePath = $filePath.Substring(1)
+			del "$filePath\$fileName.bat" -force
+		}
+		else
+		{
+			Write-Host "Deleting $filePath/$fileName"
+			del "$filePath\$fileName" -Force -Recurse
+		}
+	}
+	
+	#popd
+}
+
+function interpretInstructions([string]$instructionString, [string]$packagePath)
+{
+	$instructions = $instructionString.split(",")
+	foreach ($instruction in $instructions)
+	{
+		carryOutInstruction $instruction $packagePath
+	}
+}
+
 
 
 # -------------------------------- TESTING -----------------------------
@@ -306,7 +418,7 @@ if ($list -and $otherInfo -eq "installed")
 	if ($filter -ne "")
 	{
 		$filters = $filter.split(",")
-		$filteredPackages = filterPackageListByTags $packages $filters "installed"
+		$filteredPackages = filterPackageListByTags $packages $filters $true
 	}
 	
 	foreach ($package in $filteredPackages)
@@ -324,7 +436,7 @@ if ($list -and $otherInfo -eq "tags")
 	if ($filter -ne "")
 	{
 		$filters = $filter.split(",")
-		$filteredPackages = filterPackageListByTags $packages $filters "list"
+		$filteredPackages = filterPackageListByTags $packages $filters $false
 	}
 	
 	foreach ($package in $filteredPackages)
