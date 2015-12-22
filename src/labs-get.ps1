@@ -536,8 +536,6 @@ if ($update -ne "")
 
 	# update local package
 	pushd "$PKG_DIR\$packageRealName"
-	echo "$PKG_DIR\$packageRealName"
-	pwd # DEBUG
 	git pull origin
 	popd
 
