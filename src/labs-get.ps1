@@ -1,7 +1,7 @@
 # ----------------------------------------------------
-#	Labs-Get v0.1.0-w
+#	labs-get v1.0.0-w
 #	Date Created: 12/18/2015
-#	Date Edited: 12/21/2015
+#	Date Edited: 12/22/2015
 #	Copyright © 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ----------------------------------------------------
@@ -19,7 +19,8 @@ param (
 	[switch]$override = $false, # ignore default filters
 	[Parameter(Position=2)]
 	[string]$otherInfo = "",
-	[string]$filter = ""
+	[string]$filter = "",
+	[switch]$help = $false
 )
 
 # check that necessary environment variables exist
@@ -80,6 +81,7 @@ function readTotalInstalledFile() # reads in header as well
 	return $packages
 }
 
+# Apparently I ignored the fact that a split function already exists....oops....
 function getCSVCol([string]$rowData, [int]$colNum)
 {
 	$currentString = $rowData
@@ -108,6 +110,7 @@ function getCSVCol([string]$rowData, [int]$colNum)
 	return $currentString.Substring(0, $index)
 }
 
+# .....yeah....it would have been nice to know that BEFORE...oh well, I know how to make delimiting functions now!
 function getTagList([string]$tagString)
 {
 	$tags = @()
@@ -127,6 +130,7 @@ function getTagList([string]$tagString)
 	return $tags
 }
 
+# returns array only of package data that passed filters
 function filterPackageListByTags([string[]]$list, [array]$filterTags, [bool]$installed)
 {
 	$returnList = @()
@@ -266,6 +270,7 @@ function handlePackageDataFolder([string]$packageRealName)
 	}
 }
 
+# checks _PKG info for install instructions
 function getPackageInstallInstructions([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
@@ -284,6 +289,7 @@ function getPackageInstallInstructions([string]$packageRealName)
 	return $instructions
 }
 
+# checks _PKG info for removal instructions
 function getPackageRemoveInstructions([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
@@ -302,6 +308,7 @@ function getPackageRemoveInstructions([string]$packageRealName)
 	return $instructions
 }
 
+# executes single instruction
 function carryOutInstruction([string]$instruction, [string]$packagePath)
 {
 	#substitute any path variable strings
@@ -367,6 +374,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 	}
 }
 
+# Yay, I found the split function! 
 function interpretInstructions([string]$instructionString, [string]$packagePath)
 {
 	if ($instructionString -eq "NOINSTRUCTIONS") { break }
@@ -593,7 +601,7 @@ if ($update -ne "")
 # ---- REMOVE ----
 if ($remove -ne "")
 {
-	# Validate that actually installed
+	# validate that actually installed
 	$isInstalled = checkIfPackageInstalled $remove
 	if ($isInstalled -ne $true) { echo "Package '$remove' wasn't found.`n"; exit }
 
@@ -732,6 +740,17 @@ if ($install -ne "")
 	}
 
 	if (!$found) { echo "Package '$install' wasn't found. Try running `"labs-get -list -update`" to update the package list, and then try again."; }
+}
+
+# ---- HELP STUFF ----
+if (!$list -and !$check -and $update -eq "" -and $install -eq "" -and $remove -eq "")
+{
+	echo "possible commands:`n`t-list [-filter {FILTERS[]}] [-override]`n`t-list update`n`t-list installed`n`t-list tags [-override]`n`t-install {PACKAGENAME}`n`t-remove {PACKAGENAME} [-force]`n`t-update {PACKAGENAME}"
+}
+
+if ($help)
+{
+	echo "_PKG help:`n`n`t`tinstall=`n`t`tremove=`n`t`tdata=`t(use 'NONE' if no data folder needed)`n`t`t(Note that all above lists should be comma delimited)`n`n`tInstructions:`n`t`t[filename]>[destPath]`tsimple file transfer`n`t`t[shortcutName]~[targetPathRunnable]~[destPath]`tcreate simple script to run external runnable`n`t`t[foldername]+[destPath]`tcreate folder`n`t`t[filename]<[destPath]`tdelete file/folder(note that this accepts wildcards)`n`t`t[filename]<<[destPath]`tremove runnable shortcut script`n`n`tVariables:`n`t`t`$BIN_DIR`n`t`t`$LIB_DIR`n`t`t`$CONF_DIR`n`t`t`$DATA_DIR"
 }
 
 if (!$noSpace) { echo "" }
