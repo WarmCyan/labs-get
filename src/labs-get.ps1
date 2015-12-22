@@ -304,8 +304,6 @@ function getPackageRemoveInstructions([string]$packageRealName)
 
 function carryOutInstruction([string]$instruction, [string]$packagePath)
 {
-	#pushd $ROOT_FOLDER # all paths in instructions should be based on labs root folder
-
 	#substitute any path variable strings
 	$instruction = $instruction.replace('$BIN_DIR',$BIN_DIR)
 	$instruction = $instruction.replace('$PKG_DIR',$PKG_DIR)
@@ -319,10 +317,10 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		$file = $instruction.Substring(0, $delimiterIndex)
 		$dest = $instruction.Substring($delimiterIndex + 1)
 
-		Write-Host "Copying from $packagePath\$file to $dest\$file"
+		#Write-Host "Copying from $packagePath\$file to $dest\$file" # DEBUG
 		copy "$packagePath\$file" "$dest\"
 	}
-	elseif ($instruction.IndexOf("~") -ne -1)
+	elseif ($instruction.IndexOf("~") -ne -1) # create simple runnable for external path
 	{
 		$index = $instruction.IndexOf("~")
 		$runnableName = $instruction.Substring(0, $index)
@@ -335,18 +333,18 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		
 		$runnableContent = "@echo off`n$runnableThing %*"
 
-		Write-Host "Creating $runnablePath\$runnableName.bat"
+		#Write-Host "Creating $runnablePath\$runnableName.bat" # DEBUG
 
 		Set-Content -Path "$runnablePath\$runnableName.bat" -value $runnableContent
 	}
-	elseif ($instruction.IndexOf("+") -ne -1)
+	elseif ($instruction.IndexOf("+") -ne -1) # create folder
 	{
 		$index = $instruction.IndexOf("+")
 		$folderName = $instruction.Substring(0, $index)
 		$folderPath = $instruction.Substring($index + 1)
 
-		Write-Host "Creating folder $folderPath\$folderName"
-		md "$folderPath\$folderName" | Out-Null
+		#Write-Host "Creating folder $folderPath\$folderName" # DEBUG
+		New-Item -Path "$folderPath\$folderName" -Type directory | Out-Null
 	}
 	elseif ($instruction.IndexOf("<") -ne -1)
 	{
@@ -357,18 +355,16 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		# check for script removal
 		if ($filePath.Substring(0, 1) -eq "<")
 		{
-			Write-Host "Deleting $filePath\$fileName"
+			#Write-Host "Deleting $filePath\$fileName" # DEBUG
 			$filePath = $filePath.Substring(1)
 			del "$filePath\$fileName.bat" -force
 		}
 		else
 		{
-			Write-Host "Deleting $filePath/$fileName"
+			#Write-Host "Deleting $filePath/$fileName" # DEBUG
 			del "$filePath\$fileName" -Force -Recurse
 		}
 	}
-	
-	#popd
 }
 
 function interpretInstructions([string]$instructionString, [string]$packagePath)
