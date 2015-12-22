@@ -201,8 +201,8 @@ function installPackageList([string[]]$packages, [string]$force)
 		$isInstalled = checkIfPackageInstalled $package
 		if ($isInstalled -ne $true)
 		{
-			if ($force -eq "force") { ./labs-get -install $package -forceDependencies -noSpace }
-			else { ./labs-get -install $package -noSpace }
+			if ($force -eq "force") { labs-get -install $package -forceDependencies -noSpace }
+			else { labs-get -install $package -noSpace }
 		}
 		else
 		{
