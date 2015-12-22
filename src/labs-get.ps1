@@ -371,6 +371,7 @@ function testCSV()
 
 if (!$noSpace) { echo "" }
 
+# ---- LIST ----
 if ($list -and $otherInfo -eq "update")
 {
 	pushd $PKG_DIR\labs-get-list
@@ -459,6 +460,7 @@ if ($list -and $otherInfo -eq "tags")
 	}
 }
 
+# ---- CHECK DEPENDENCIES ----
 if ($check)
 {
 	$packages = readInstalledFile
@@ -494,7 +496,7 @@ if ($check)
 	}
 }
 
-# UPDATE
+# ---- UPDATE ----
 if ($update -ne "")
 {
 	# make sure package exists
@@ -576,5 +578,67 @@ if ($update -ne "")
 		}
 	}
 }
+
+# ---- REMOVE ----
+if ($remove -ne "")
+{
+	# Validate that actually installed
+	$isInstalled = checkIfPackageInstalled $remove
+	if ($isInstalled -ne $true) { echo "Package '$remove' wasn't found.`n"; exit }
+
+	$packageRealName = "" # NOTE: assigned later
+	
+	# find all packages that require this as a dependency and warn
+	$packages = readInstalledFile
+	$required = @()
+	$uninstallInstructions = ""
+	foreach($package in $packages)
+	{
+		# if package is current one, store the removal instructions
+		$packageName = getCSVCol $package 0
+		if ($packageName -eq $remove) 
+		{ 
+			$packageRealName = getCSVCol 1 # NOTE: assigned here
+			$uninstallInstructions = getPackageRemoveInstructions $packageRealName
+		}
+		
+		# get depends (Add any packages to the array if it lists this package as dependency)
+		$depend = getCSVCol $package 4
+		$dependTags = getTagList $depend
+		$containsRemove = tagListContains $dependTags $remove
+		if ($containsRemove) { $required += $package }
+	}
+	
+	if ($required.length -gt 0)
+	{
+		Write-Host "WARNING - Following packages required this package as a dependency:" -ForegroundColor Red
+		foreach ($req in $required) 
+		{ 
+			$packageName = getCSVCol $req 0
+			Write-Host "$packageName" -ForegroundColor Red 
+		}
+
+		if (!$force)
+		{
+			$input = Read-Host -Prompt "Confirm package removal: (y/n)"
+			if ($input -eq "N" -or $input -eq "n") { echo "Package uninstallation canceled.`n"; exit }
+		}
+	}
+
+	echo "Removing package '$remove'"
+
+	# find all removal instructions
+	interpretInstructions $uninstallInstructions "$PKG_DIR/$packageRealName"
+	
+	# delete git file
+	pushd #PKG_DIR
+	del $packageRealName -Force -Recurse
+	popd
+
+	removePackageFromInstalled $remove
+
+	echo "Package removed successfully."
+}
+
 
 if (!$noSpace) { echo "" }
