@@ -10,7 +10,7 @@
 param (
 	[switch]$list = $false,
 	[switch]$check = $false,
-	[string]$update = "", # can accept piplined value
+	[string]$update = "", 
 	[string]$install = "",
 	[string]$remove = "",
 	[switch]$forceDependencies = $false, # install dependencies without asking (for automation)
