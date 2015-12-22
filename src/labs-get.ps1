@@ -262,6 +262,7 @@ function handlePackageDataFolder([string]$packageRealName)
 			md $DATA_DIR\$folderName 
 		}
 	}
+	popd
 }
 
 function getPackageInstallInstructions([string]$packageRealName)
@@ -278,6 +279,7 @@ function getPackageInstallInstructions([string]$packageRealName)
 		}
 	}
 	if ($instructions -eq "") { Write-Host "WARNING: No installation instructions found in the package info" -ForegroundColor red }
+	popd
 	return $instructions
 }
 
@@ -295,6 +297,7 @@ function getPackageRemoveInstructions([string]$packageRealName)
 		}
 	}
 	if ($instructions -eq "") { Write-Host "WARNING: No remove instructions found in the package info" -ForegroundColor red }
+	popd
 	return $instructions
 }
 
@@ -643,7 +646,7 @@ if ($remove -ne "")
 	interpretInstructions $uninstallInstructions "$PKG_DIR/$packageRealNameExt"
 	
 	# delete git file
-	pushd PKG_DIR
+	pushd $PKG_DIR
 	del $packageRealNameExt -Force -Recurse
 	popd
 
