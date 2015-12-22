@@ -260,7 +260,7 @@ function handlePackageDataFolder([string]$packageRealName)
 		if (!$alreadyExists) 
 		{ 
 			Write-Host "Data folder requested, creating $DATA_DIR\$folderName"
-			md $DATA_DIR\$folderName 
+			md $DATA_DIR\$folderName | Out-Null
 		}
 	}
 	popd
@@ -320,7 +320,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		#Write-Host "Copying from $packagePath\$file to $dest\$file" # DEBUG
 		copy "$packagePath\$file" "$dest\"
 	}
-	elseif ($instruction.IndexOf("~") -ne -1) # create simple runnable for external path
+	elseif ($instruction.IndexOf("~") -ne -1) # create simple script runnable for external
 	{
 		$index = $instruction.IndexOf("~")
 		$runnableName = $instruction.Substring(0, $index)
@@ -344,7 +344,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		$folderPath = $instruction.Substring($index + 1)
 
 		#Write-Host "Creating folder $folderPath\$folderName" # DEBUG
-		New-Item -Path "$folderPath\$folderName" -Type directory | Out-Null
+		md "$folderPath\$folderName" | Out-Null
 	}
 	elseif ($instruction.IndexOf("<") -ne -1)
 	{
