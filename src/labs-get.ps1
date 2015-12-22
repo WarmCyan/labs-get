@@ -254,6 +254,7 @@ function handlePackageDataFolder([string]$packageRealName)
 	$dataFolders = $instructions.split(",")
 	foreach ($folderName in $dataFolders)
 	{
+		if ($folderName -eq "NONE") { break }
 		# first see if it already exists
 		$alreadyExists = Test-Path $DATA_DIR\$folderName
 		if (!$alreadyExists) 
