@@ -340,6 +340,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 
 function interpretInstructions([string]$instructionString, [string]$packagePath)
 {
+	if ($instructionString -eq "NOINSTRUCTIONS") { break }
 	$instructions = $instructionString.split(",")
 	foreach ($instruction in $instructions)
 	{
@@ -502,22 +503,27 @@ if ($update -ne "")
 
 	$packages = readInstalledFile
 
+	$packageRealName = ""
 	$packageUninstall = ""
 	
 	# get uninstall stuff
 	foreach ($package in $packages)
 	{
 		$packageName = getCSVCol $package 0
-		if ($packageName -eq $update) { $packageUninstall = getCSVCol $package 3 }
+		if ($packageName -eq $update) 
+		{ 
+			$packageRealName = getCSVCol $package 1
+			$packageUninstall = getPackageRemoveInstructions $packageRealName
+		}
 		break
 	}
 
 	# run uninstall code
-	if ($packageUninstall -ne "NOINSTRUCTIONS") { interpretInstructions $packageUninstall "pkg/$update" }
+	interpretInstructions $packageUninstall "$PKG_DIR\$packageRealName"
 	removePackageFromInstalled $update
 
 	# update local package
-	pushd "$ROOT_FOLDER/pkg/$update"
+	pushd "$PKG_DIR\$packageRealName"
 	git pull origin
 	popd
 
@@ -529,11 +535,11 @@ if ($update -ne "")
 
 		if ($packageName -eq $update)
 		{
-			$packageLink = getCSVCol $package 1
-			$packageDependencies = getCSVCol $package 4
-			$packageTags = getCSVCol $package 3
-			$packageInstallation = getCSVCol $package 5
-			$packageRemoval = getCSVCol $package 6
+			$packageRealName = getCSVCol $package 1
+			$packageLink = getCSVCol $package 2
+			$packageDependencies = getCSVCol $package 5
+			$packageTags = getCSVCol $package 4
+			$packageInstallation = getPackageInstallInstructions $packageRealName
 			
 			# check dependencies
 			$notInstalledList = @()
@@ -547,10 +553,10 @@ if ($update -ne "")
 				}
 			}
 			
-			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageDependencies,$packageTags,$packageRemoval"
+			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$pakcageLink,$packageTags,$packageDependencies"
 
 			# run installation instructions
-			if ($packageInstallation -ne "NOINSTRUCTIONS") { interpretInstructions $packageInstallation "pkg/$packageName" }
+			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
 
 			# install any required dependencies if user requested
 			if ($notInstalledList.length -gt 0 -and $forceDependencies -ne $true) 
