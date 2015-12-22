@@ -235,6 +235,35 @@ function removePackageFromInstalled([string]$packageName)
 	}
 }
 
+# check _PKG info to see if a package needs data folder(s) created
+function handlePackageDataFolder([string]$packageRealName)
+{
+	pushd $PKG_DIR\$packageRealName
+	$lines = Get-Content _PKG
+	$instructions = ""
+	foreach ($line in $lines)
+	{
+		if ($line.StartsWith("data="))
+		{
+			$instructions = $line.Substring($line.IndexOf("=") + 1)
+			break
+		}
+	}
+	if ($instructions -eq "") { Write-Host "WARNING: No data folder instructions found in the package info" -ForegroundColor red }
+
+	$dataFolders = $instructions.split(",")
+	foreach ($folderName in $dataFolders)
+	{
+		# first see if it already exists
+		$alreadyExists = Test-Path $DATA_DIR\$folderName
+		if (!$alreadyExists) 
+		{ 
+			Write-Host "Data folder requested, creating $DATA_DIR\$folderName"
+			md $DATA_DIR\$folderName 
+		}
+	}
+}
+
 function getPackageInstallInstructions([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
@@ -274,11 +303,11 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 	#pushd $ROOT_FOLDER # all paths in instructions should be based on labs root folder
 
 	#substitute any path variable strings
-	$instruction = $instruction -replace '$BIN_DIR' $BIN_DIR
-	$instruction = $instruction -replace '$PKG_DIR' $PKG_DIR
-	$instruction = $instruction -replace '$CONF_DIR' $CONF_DIR
-	$instruction = $instruction -replace '$LIB_DIR' $LIB_DIR
-	$instruction = $instruction -replace '$DATA_DIR' $DATA_DIR
+	$instruction = $instruction -replace '$BIN_DIR',"$BIN_DIR"
+	$instruction = $instruction -replace '$PKG_DIR',"$PKG_DIR"
+	$instruction = $instruction -replace '$CONF_DIR',"$CONF_DIR"
+	$instruction = $instruction -replace '$LIB_DIR',"$LIB_DIR"
+	$instruction = $instruction -replace '$DATA_DIR',"$DATA_DIR"
 	
 	if ($instruction.IndexOf(">") -ne -1) # simple file transfer instruction
 	{
@@ -348,26 +377,7 @@ function interpretInstructions([string]$instructionString, [string]$packagePath)
 	}
 }
 
-
-
-# -------------------------------- TESTING -----------------------------
-function testCSV()
-{
-	$packages = readListFile
-	foreach ($package in $packages)
-	{
-		$data = getCSVCol $package 3
-
-		$tagList = getTagList $data
-
-		foreach ($tag in $tagList)
-		{
-			write-host $tag
-		}
-	}
-}
-
-# testCSV
+# ------------------------ MAIN PROGRAM FLOW ---------------------------
 
 if (!$noSpace) { echo "" }
 
@@ -559,6 +569,7 @@ if ($update -ne "")
 
 			# run installation instructions
 			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
+			handlePackageDataFolder $packageRealName
 
 			# install any required dependencies if user requested
 			if ($notInstalledList.length -gt 0 -and $forceDependencies -ne $true) 
@@ -640,5 +651,86 @@ if ($remove -ne "")
 	echo "Package removed successfully."
 }
 
+# ---- INSTALL ----
+if ($install -ne "")
+{
+	# first read in file
+	$packages = readListFile
+	$packageLink = ""
+
+	$found = $false # represents if found the package specified or not
+
+	# search for desired package
+	foreach ($package in $packages)
+	{
+		$packageName = getCSVCol $package 0
+		
+		if ($packageName -eq $install)
+		{
+			$found = $true
+
+			$alreadyInstalled = checkIfPackageInstalled $packageName
+			if ($alreadyInstalled)
+			{
+					echo "Package '$packageName' has already been installed. If attempting to update, run the command 'labs-get -update $packageName'`n"
+					exit 
+			}
+			
+			$packageLink = getCSVCol $package 2
+			$packageRealName = getCSVCol $package 1
+			$packageDependencies = getCSVCol $package 5
+			$packageTags = getCSVCol $package 4
+			$packageInstallation = getPackageInstallInstructions $packageRealName
+			
+			# check dependencies
+			$notInstalledList = @()
+			if ($packageDependencies -ne "NONE")
+			{
+				$dependencies = getTagList $packageDependencies
+				foreach ($dependency in $dependencies)
+				{
+					$isInstalled = checkIfPackageInstalled $dependency
+					if ($isInstalled -ne $true) { $notInstalledList += $dependency }
+				}
+			}
+			
+			echo "Retrieving package '$packageLink'..."
+
+			# clone the git repository into the packages folder
+			pushd $PKG_DIR
+			git clone $packageLink
+			popd
+
+			# add to installed list
+			echo "Adding package info to installed data..."
+			# echo "$packageName,$packageDependencies" >> pkg\installed.dat
+			Add-Content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies"
+
+			# run installation instructions
+			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
+			handlePackageDataFolder $packageRealName
+
+			echo "Package '$packageName' installed"
+
+			# install any required dependencies if user requested
+			if ($notInstalledList.length -gt 0 -and $forceDependencies -ne $true) 
+			{
+				echo ""
+				echo "Package '$packageName' requires (but did not find) the following packages: "
+				foreach ($notInst in $notInstalledList) { write-host "$notInst" -ForegroundColor Yellow }
+				echo ""
+				
+				$userOption = Read-Host -Prompt "Install packages? `n(Y - Yes [Will prompt for any of these dependencies' dependencies], N - No, A - All [Installs all dependencies and their dependencies without prompting again])`n"
+				if ($userOption -eq "Y" -or $userOption -eq "y") { installPackageList $notInstalledList "noforce" }
+				elseif ($userOption -eq "A" -or $userOption -eq "a") { installPackageList $notInstalledList "force" }
+			}
+			elseif ($notInstalledList.length -gt 0 -and $forceDependencies -eq $true) { installPackageList $notInstalledList "force" }
+			
+			break
+		}
+	}
+
+	if (!$found) { echo "Package '$install' wasn't found. Try running `"labs-get -list -update`" to update the package list, and then try again."; }
+}
 
 if (!$noSpace) { echo "" }
