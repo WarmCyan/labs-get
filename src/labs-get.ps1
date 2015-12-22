@@ -303,11 +303,11 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 	#pushd $ROOT_FOLDER # all paths in instructions should be based on labs root folder
 
 	#substitute any path variable strings
-	$instruction = $instruction -replace '$BIN_DIR',$BIN_DIR
-	$instruction = $instruction -replace '$PKG_DIR',$PKG_DIR
-	$instruction = $instruction -replace '$CONF_DIR',$CONF_DIR
-	$instruction = $instruction -replace '$LIB_DIR',$LIB_DIR
-	$instruction = $instruction -replace '$DATA_DIR',$DATA_DIR
+	$instruction = $instruction.replace('$BIN_DIR',$BIN_DIR)
+	$instruction = $instruction.replace('$PKG_DIR',$PKG_DIR)
+	$instruction = $instruction.replace('$CONF_DIR',$CONF_DIR)
+	$instruction = $instruction.replace('$LIB_DIR',$LIB_DIR)
+	$instruction = $instruction.replace('$DATA_DIR',$DATA_DIR)
 	
 	if ($instruction.IndexOf(">") -ne -1) # simple file transfer instruction
 	{
