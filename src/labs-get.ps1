@@ -1,7 +1,7 @@
 # ----------------------------------------------------
 #	Labs-Get v0.1.0-w
 #	Date Created: 12/18/2015
-#	Date Edited: 12/20/2015
+#	Date Edited: 12/21/2015
 #	Copyright © 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ----------------------------------------------------
@@ -303,11 +303,11 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 	#pushd $ROOT_FOLDER # all paths in instructions should be based on labs root folder
 
 	#substitute any path variable strings
-	$instruction = $instruction -replace '$BIN_DIR',"$BIN_DIR"
-	$instruction = $instruction -replace '$PKG_DIR',"$PKG_DIR"
-	$instruction = $instruction -replace '$CONF_DIR',"$CONF_DIR"
-	$instruction = $instruction -replace '$LIB_DIR',"$LIB_DIR"
-	$instruction = $instruction -replace '$DATA_DIR',"$DATA_DIR"
+	$instruction = $instruction -replace '$BIN_DIR',$BIN_DIR
+	$instruction = $instruction -replace '$PKG_DIR',$PKG_DIR
+	$instruction = $instruction -replace '$CONF_DIR',$CONF_DIR
+	$instruction = $instruction -replace '$LIB_DIR',$LIB_DIR
+	$instruction = $instruction -replace '$DATA_DIR',$DATA_DIR
 	
 	if ($instruction.IndexOf(">") -ne -1) # simple file transfer instruction
 	{
@@ -597,7 +597,7 @@ if ($remove -ne "")
 	$isInstalled = checkIfPackageInstalled $remove
 	if ($isInstalled -ne $true) { echo "Package '$remove' wasn't found.`n"; exit }
 
-	$packageRealName = "" # NOTE: assigned later
+	$packageRealNameExt = "" # NOTE: assigned later
 	
 	# find all packages that require this as a dependency and warn
 	$packages = readInstalledFile
@@ -610,6 +610,7 @@ if ($remove -ne "")
 		if ($packageName -eq $remove) 
 		{ 
 			$packageRealName = getCSVCol 1 # NOTE: assigned here
+			$packageRealNameExt = $packageRealName
 			$uninstallInstructions = getPackageRemoveInstructions $packageRealName
 		}
 		
@@ -639,11 +640,11 @@ if ($remove -ne "")
 	echo "Removing package '$remove'"
 
 	# find all removal instructions
-	interpretInstructions $uninstallInstructions "$PKG_DIR/$packageRealName"
+	interpretInstructions $uninstallInstructions "$PKG_DIR/$packageRealNameExt"
 	
 	# delete git file
-	pushd #PKG_DIR
-	del $packageRealName -Force -Recurse
+	pushd PKG_DIR
+	del $packageRealNameExt -Force -Recurse
 	popd
 
 	removePackageFromInstalled $remove
