@@ -240,6 +240,7 @@ function handlePackageDataFolder([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
 	$lines = Get-Content _PKG
+	popd
 	$instructions = ""
 	foreach ($line in $lines)
 	{
@@ -263,13 +264,13 @@ function handlePackageDataFolder([string]$packageRealName)
 			md $DATA_DIR\$folderName | Out-Null
 		}
 	}
-	popd
 }
 
 function getPackageInstallInstructions([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
 	$lines = Get-Content _PKG
+	popd
 	$instructions = ""
 	foreach ($line in $lines)
 	{
@@ -280,7 +281,6 @@ function getPackageInstallInstructions([string]$packageRealName)
 		}
 	}
 	if ($instructions -eq "") { Write-Host "WARNING: No installation instructions found in the package info" -ForegroundColor red }
-	popd
 	return $instructions
 }
 
@@ -288,6 +288,7 @@ function getPackageRemoveInstructions([string]$packageRealName)
 {
 	pushd $PKG_DIR\$packageRealName
 	$lines = Get-Content _PKG
+	popd
 	$instructions = ""
 	foreach ($line in $lines)
 	{
@@ -298,7 +299,6 @@ function getPackageRemoveInstructions([string]$packageRealName)
 		}
 	}
 	if ($instructions -eq "") { Write-Host "WARNING: No remove instructions found in the package info" -ForegroundColor red }
-	popd
 	return $instructions
 }
 
@@ -536,6 +536,8 @@ if ($update -ne "")
 
 	# update local package
 	pushd "$PKG_DIR\$packageRealName"
+	echo "$PKG_DIR\$packageRealName"
+	pwd # DEBUG
 	git pull origin
 	popd
 
@@ -565,7 +567,7 @@ if ($update -ne "")
 				}
 			}
 			
-			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$pakcageLink,$packageTags,$packageDependencies"
+			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies"
 
 			# run installation instructions
 			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
