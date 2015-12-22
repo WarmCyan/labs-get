@@ -333,7 +333,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 
 		Write-Host "Creating $runnablePath\$runnableName.bat"
 
-		Add-Content -Path "$runnablePath\$runnableName.bat" -value $runnableContent
+		Set-Content -Path "$runnablePath\$runnableName.bat" -value $runnableContent
 	}
 	elseif ($instruction.IndexOf("+") -ne -1)
 	{
@@ -609,7 +609,7 @@ if ($remove -ne "")
 		$packageName = getCSVCol $package 0
 		if ($packageName -eq $remove) 
 		{ 
-			$packageRealName = getCSVCol 1 # NOTE: assigned here
+			$packageRealName = getCSVCol $package 1 # NOTE: assigned here
 			$packageRealNameExt = $packageRealName
 			$uninstallInstructions = getPackageRemoveInstructions $packageRealName
 		}
