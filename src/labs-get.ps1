@@ -526,8 +526,8 @@ if ($update -ne "")
 		{ 
 			$packageRealName = getCSVCol $package 1
 			$packageUninstall = getPackageRemoveInstructions $packageRealName
+			break
 		}
-		break
 	}
 
 	# run uninstall code
