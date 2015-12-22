@@ -680,7 +680,6 @@ if ($install -ne "")
 			$packageRealName = getCSVCol $package 1
 			$packageDependencies = getCSVCol $package 5
 			$packageTags = getCSVCol $package 4
-			$packageInstallation = getPackageInstallInstructions $packageRealName
 			
 			# check dependencies
 			$notInstalledList = @()
@@ -707,6 +706,7 @@ if ($install -ne "")
 			Add-Content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies"
 
 			# run installation instructions
+			$packageInstallation = getPackageInstallInstructions $packageRealName
 			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
 			handlePackageDataFolder $packageRealName
 
