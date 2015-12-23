@@ -2,7 +2,7 @@
 #----------------------------------------------
 #	labs-get setup script v1.0.0-lx
 #	Date Created: 12/22/2015
-#	Date Edited: 12/22/2015
+#	Date Edited: 12/23/2015
 #	Copyright ©2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 #	Description: Setup script for the linux labs-get package manager
@@ -52,6 +52,11 @@ function setPkgDir()
 	echo "PKG_DIR=\"$pkgPath\""
 }
 
+function addToPath()
+{
+	# TODO TODO TODO
+}
+
 
 # ------------------- MAIN PROGRAM FLOW -------------------
 
@@ -64,3 +69,12 @@ if [ -z ${DATA_DIR+x} ]; then setDataDir(); fi
 if [ -z ${PKG_DIR+x} ]; then setPkgDir(); fi
 source /etc/environment # update environment variables
 
+# make sure that the BIN_DIR exists within the path variable
+echo "Checking PATH..."
+
+#insert clean runnable to bin folder and see if possible to run
+echo "echo 'Bin directory is in path!'" > $BIN_DIR/path_check.sh
+chmod +x $BIN_DIR/path_check.sh
+if ! [[ path_check ]]; then
+	
+fi
