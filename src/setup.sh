@@ -17,7 +17,7 @@ function setBinDir()
 	echo "No bin path defined!"
 	echo -n "Enter path to bin folder: "
 	read binPath
-	echo "BIN_DIR=\"$binPath\""
+	echo "BIN_DIR=\"$binPath\"" >> /etc/environment
 }
 
 function setLibDir()
@@ -25,7 +25,7 @@ function setLibDir()
 	echo "No lib path defined!"
 	echo -n "Enter path to lib folder: "
 	read libPath
-	echo "LIB_DIR=\"$libPath\""
+	echo "LIB_DIR=\"$libPath\"" >> /etc/environment
 }
 
 function setConfDir()
@@ -33,7 +33,7 @@ function setConfDir()
 	echo "No conf path defined!"
 	echo -n "Enter path to conf folder: "
 	read confPath
-	echo "CONF_DIR=\"$confPath\""
+	echo "CONF_DIR=\"$confPath\"" >> /etc/environment
 }
 
 function setDataDir()
@@ -41,7 +41,7 @@ function setDataDir()
 	echo "No data path defined!"
 	echo -n "Enter path to data folder: "
 	read dataDir
-	echo "DATA_DIR=\"$dataPath\""
+	echo "DATA_DIR=\"$dataPath\"" >> /etc/environment
 }
 
 function setPkgDir()
@@ -49,7 +49,7 @@ function setPkgDir()
 	echo "No pkg path defined!"
 	echo -n "Enter path to pkg folder: "
 	read pkgPath
-	echo "PKG_DIR=\"$pkgPath\""
+	echo "PKG_DIR=\"$pkgPath\"" >> /etc/environment
 }
 
 function addToPath()
@@ -78,11 +78,21 @@ function getTags()
 
 # check existence of environment variables
 echo "Checking environment variables..."
-if [ -z ${BIN_DIR+x} ]; then setBinDir(); fi
-if [ -z ${LIB_DIR+x} ]; then setLibDir(); fi
-if [ -z ${CONF_DIR+x} ]; then setConfDir(); fi
-if [ -z ${DATA_DIR+x} ]; then setDataDir(); fi
-if [ -z ${PKG_DIR+x} ]; then setPkgDir(); fi
+if [ -z ${BIN_DIR+x} ]; then 
+	setBinDir
+fi
+if [ -z ${LIB_DIR+x} ]; then 
+	setLibDir
+fi
+if [ -z ${CONF_DIR+x} ]; then 
+	setConfDir
+fi
+if [ -z ${DATA_DIR+x} ]; then 
+	setDataDir
+fi
+if [ -z ${PKG_DIR+x} ]; then 
+	setPkgDir
+fi
 source /etc/environment # update environment variables
 
 # make sure that the BIN_DIR exists within the path variable
@@ -92,18 +102,30 @@ echo "Checking PATH..."
 echo "echo 'Bin directory is in path!'" > $BIN_DIR/path_check.sh
 chmod +x $BIN_DIR/path_check.sh
 if ! [[ path_check ]]; then
-	addToPath()
+	addToPath
 fi
-del $BIN_DIR/path_check.sh
+rm $BIN_DIR/path_check.sh
 
 # move primary script into the bin folder so it can be run
 echo "Copying primary program files..."
 cp labs-get.sh $BIN_DIR
+chmod +x labs-get.sh $BIN_DIR
 echo "Program files located appropriately"
 
 # create the data directory if not found, and create all necessary data files
 echo "Setting up data files..."
-if [ ! -e "$DATA_DIR/labs-get" ]; then md $DATA_DIR/labs-get; fi
-if [ ! -e "$PKG_DIR/labs-get-list" ]; then getGitList(); fi
-if [ ! -e "$DATA_DIR/labs-get/installed.dat" ]; then echo "name,packagename,url,tags,dependencies" > $DATA_DIR/labs-get/installed.dat; fi
-if [ ! -e "$DATA_DIR/labs-get/default-tags.dat" ]; then getTags(); fi
+if [ ! -e "$DATA_DIR/labs-get" ]; then 
+	mkdir $DATA_DIR/labs-get 
+fi
+if [ ! -e "$PKG_DIR/labs-get-list" ]; then 
+	getGitList
+fi
+if [ ! -e "$DATA_DIR/labs-get/installed.dat" ]; then 
+	echo "name,packagename,url,tags,dependencies" > $DATA_DIR/labs-get/installed.dat 
+fi
+if [ ! -e "$DATA_DIR/labs-get/default-tags.dat" ]; then 
+	getTags
+fi
+echo "All data files properly installed"
+
+echo "Setup complete!"
