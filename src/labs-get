@@ -1,3 +1,4 @@
+#!/bin/bash
 # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
@@ -5,3 +6,58 @@
 #	Copyright (C) 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
+
+
+
+
+# --------------------------- FUNCTIONS ------------------------------
+
+# --------------------------- MAIN PROGRAM FLOW ------------------------------
+# get command line arguments
+
+$list = false
+$check = false
+$update = ""
+
+
+if [ $1 == "-list" ]; then
+fi
+
+if [ $1 == "-install" ]: then 
+fi
+
+if [ $1 == "-update" ]: then
+fi
+
+if [ $1 == "-remove" ]; then
+fi
+
+# other info is going to be 2nd argument only, then we have to do the same checks
+
+# check that the necessary environemnt variables
+
+
+# shortcuts to important files
+$LIST_DATA_FILE = "$PKG_DIR/labs-get-list/list.dat"
+$INSTALLED_DATA_FILE = "$DATA_DIR/labs-get/installed.dat"
+$DEFAULT_TAGS_FILE = "$DATA_DIR/labs-get/default-tags.dat"
+$flag_importantFilesNotFound = false
+
+# check for important file existence
+if [ ! -e $LIST_DATA_FILE ]; then
+	echo "ERROR - Couldn't find $LIST_DATA_FILE" #TODO: ADD COLOR	
+	$flag_importantFilesNotFound = true
+fi
+if [ ! -e $INSTALLED_DATA_FILE ]; then
+	echo "ERROR - Couldn't find $INSTALLED_DATA_FILE" #TODO: ADD COLOR	
+	$flag_importantFilesNotFound = true
+fi
+if [ ! -e $DEFAULT_TAGS_FILE ]; then
+	echo "ERROR - Couldn't find $DEFAULT_TAGS_FILE" #TODO: ADD COLOR	
+	$flag_importantFilesNotFound = true
+fi
+
+if [ $flag_importantFilesNotFound ]; then
+	echo "Necessary data files could not be found. Please re-run the setup script that came with the package."
+	exit
+fi
