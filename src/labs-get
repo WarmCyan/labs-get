@@ -7,36 +7,41 @@
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
 
-
-
+declare -a g_workingArray
 
 # --------------------------- FUNCTIONS ------------------------------
 
 function readListFile()
 {
+	i=0
 	while read line; do
-		echo "$line"
+		g_workingArray[$i]=$line
+		((i++))
 	done < $LIST_DATA_FILE
 }
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
 
-$list = false
-$check = false
-$update = ""
+list=false
+check=false
+update=""
 
 
-if [ $1 == "-list" ]; then
+if [[ $1 == "-list" ]]; then
+	echo "thing"
 fi
 
-if [ $1 == "-install" ]: then 
+if [[ $1 == "-install" ]]; then 
+	echo "thing"
 fi
 
-if [ $1 == "-update" ]: then
+if [[ $1 == "-update" ]]; then
+	echo "thing"
 fi
 
-if [ $1 == "-remove" ]; then
+if [[ $1 == "-remove" ]]; then
+	echo "thing"
 fi
 
 # other info is going to be 2nd argument only, then we have to do the same checks
@@ -45,10 +50,10 @@ fi
 
 
 # shortcuts to important files
-$LIST_DATA_FILE = "$PKG_DIR/labs-get-list/list.dat"
-$INSTALLED_DATA_FILE = "$DATA_DIR/labs-get/installed.dat"
-$DEFAULT_TAGS_FILE = "$DATA_DIR/labs-get/default-tags.dat"
-$flag_importantFilesNotFound = false
+LIST_DATA_FILE="$PKG_DIR/labs-get-list/list.dat"
+INSTALLED_DATA_FILE="$DATA_DIR/labs-get/installed.dat"
+DEFAULT_TAGS_FILE="$DATA_DIR/labs-get/default-tags.dat"
+flag_importantFilesNotFound=false
 
 # check for important file existence
 if [ ! -e $LIST_DATA_FILE ]; then
@@ -64,10 +69,13 @@ if [ ! -e $DEFAULT_TAGS_FILE ]; then
 	$flag_importantFilesNotFound = true
 fi
 
-if [ $flag_importantFilesNotFound ]; then
+if $flag_importantFilesNotFound; then
 	echo "Necessary data files could not be found. Please re-run the setup script that came with the package."
 	exit
 fi
 
-
 readListFile
+# for i in "${g_workingArray[@]}"
+# do
+	# echo "Yay! $i"
+# done
