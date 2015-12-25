@@ -101,15 +101,15 @@ echo "Checking PATH..."
 # insert clean runnable to bin folder and see if possible to run
 echo "echo 'Bin directory is in path!'" > $BIN_DIR/path_check.sh
 chmod +x $BIN_DIR/path_check.sh
-if ! [[ path_check ]]; then
+if [ ! -x "path_check.sh" ]; then
 	addToPath
 fi
 rm $BIN_DIR/path_check.sh
 
 # move primary script into the bin folder so it can be run
 echo "Copying primary program files..."
-cp labs-get.sh $BIN_DIR
-chmod +x labs-get.sh $BIN_DIR
+cp labs-get $BIN_DIR
+chmod +x $BIN_DIR/labs-get
 echo "Program files located appropriately"
 
 # create the data directory if not found, and create all necessary data files

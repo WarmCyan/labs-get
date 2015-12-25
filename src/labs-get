@@ -12,6 +12,13 @@
 
 # --------------------------- FUNCTIONS ------------------------------
 
+function readListFile()
+{
+	while read line; do
+		echo "$line"
+	done < $LIST_DATA_FILE
+}
+
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
 
@@ -61,3 +68,6 @@ if [ $flag_importantFilesNotFound ]; then
 	echo "Necessary data files could not be found. Please re-run the setup script that came with the package."
 	exit
 fi
+
+
+readListFile
