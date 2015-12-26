@@ -23,7 +23,7 @@ g_workingBool=false
 # ASSIGNS: g_workingArray
 function readListFile()
 {
-	unset $g_workingArray
+	unset g_workingArray
 	i=0
 	while read line; do
 		if [[ $i -ne 0 ]]; then # dont' get the first line
@@ -36,7 +36,7 @@ function readListFile()
 # ASSIGNS: g_workingArray
 function readInstalledFile()
 {
-	unset $g_workingArray
+	unset g_workingArray
 	i=0
 	while read line; do
 		if [[ $i -ne 0 ]]; then # don't get first line
@@ -49,7 +49,7 @@ function readInstalledFile()
 # ASSIGNS: g_workingData
 function getCSVCol() # pass in $1 as rowData, and $2 as colNum
 {
-	unset $g_workingData
+	unset g_workingData
 	IFS=',' read -ra Cols <<< "$1"
 	g_workingData="${Cols[$2]}"
 }
@@ -57,47 +57,54 @@ function getCSVCol() # pass in $1 as rowData, and $2 as colNum
 # ASSIGNS: g_workingArray
 function getTagList() # $1 should be tag string
 {
-	unset $g_workingArray
+	unset g_workingArray
 	IFS='|' read -ra Tags <<< "$1"
-	g_workingArray=$Tags
+	g_workingArray=("${Tags[@]}")
 }
 
 # ASSIGNS: g_workingArray2
 # REQUIRES: g_listDataArray or g_installedDataArray, g_filterArray
 function filterPackageListByTags() # pass in $1 as true if installed, false if not
 {
+	#echo "uh, HELLO" # DEBUG
 	newIndex=0
 	unset g_workingArray2
-	if [[ $1 ]]; then
+	#echo "1:$1" # DEBUG
+	if [[ "$1" = true ]]; then
+		#echo "I'm a bug, and inside here even though I shouldnt' be.." # DEBUG
 		for i in "${g_installedDataArray[@]}"
 		do
 			# fill tag array first
 			unset g_workingArray
 			getCSVCol "$i" 3 # assigns to g_workingData
 			getTagList "$g_workingData" # assigns to g_workingArray
-			g_tagsArray=$g_workingArray
+			g_tagsArray=("${g_workingArray[@]}")
 
 			# check if should filter
 			shouldFilter # assigns to g_workingBool
-			if [[ ! $g_workingBool ]]; then
+			if [[ "$g_workingBool" = false ]]; then
 				g_workingArray2[$newIndex]="$i"
-				(($newIndex++))
+				((newIndex++))
 			fi
 		done
 	else
+		#echo "YO DAWG" # DEBUG
 		for i in "${g_listDataArray[@]}"
 		do
+			#echo "line:$i" # DEBUG
 			# fill tag array first
 			unset g_workingArray
 			getCSVCol "$i" 4 # assigns to g_workingData
+			#echo "tags:$g_workingData" # DEBUG
 			getTagList "$g_workingData" # assigns to g_workingArray
-			g_tagsArray=$g_workingArray
+			g_tagsArray=("${g_workingArray[@]}")
 
 			# check if should filter
 			shouldFilter # assigns to g_workingBool
-			if [[ ! $g_workingBool ]]; then
+			if [[ "$g_workingBool" = false ]]; then
 				g_workingArray2[$newIndex]="$i"
-				(($newIndex++))
+				#echo "is now: ${g_workingArray2[$newIndex]}" # DEBUG
+				((newIndex++))
 			fi
 		done
 	fi
@@ -112,43 +119,46 @@ function shouldFilter()
 	notTagFound=false # if negativefilter is in affect
 
 	# if no filter tags found, we're good
-	if [[ "{$g_filterArray[0]}" == "" ]]; then
+	if [[ "${g_filterArray[0]}" == "" ]]; then
 		g_workingBool=false
 		return
 	fi
 	
-	for i in "${g_filterArray[@]}"
+	for filter in "${g_filterArray[@]}"
 	do
 		# check for first letter is '!'
 		negativeFilter=false
-		if [[ ${i:0:1} == "!" ]]; then
+		if [[ ${filter:0:1} == "!" ]]; then
 			negativeFilter=true
-			i="${i:1}"
+			filter="${filter:1}"
 		fi
 
 		# reset booleans
 		tagFound=false
 		notTagFound=false
 
-		for j in "${g_tagsArray[@]}"
+		for tag in "${g_tagsArray[@]}"
 		do
-			if [[ "$i" == "$j" ]];	then
+			#echo "checking $filter with $tag" # DEBUG
+			if [[ "$filter" == "$tag" ]];	then
+				#echo "Found match!" # DEBUG
 				tagFound=true	
-				if [[ $negativeFilter ]]; then
+				if [[ "$negativeFilter" = true ]]; then
+					#echo "(but wasn't supposed to match)" # DEBUG
 					notTagFound=true
 				fi
 			fi
-			if [[ $notTagFound ]]; then
+			if [[ "$notTagFound" = true ]]; then
 				g_workingBool=true
 				return
 			fi
 		done
-		if [[ $notTagFound ]]; then
+		if [[ "$notTagFound" = true ]]; then
 			g_workingBool=true
 			return
 		fi
 
-		if [[ ! $tagFound ]]; then
+		if [[ "$tagFound" = false ]]; then
 			g_workingBool=true
 			return
 		fi
@@ -156,7 +166,6 @@ function shouldFilter()
 
 	# we've made it this far and haven't been disqualified so this one shouldn't be filtered!
 	g_workingBool=false
-
 }
 
 
@@ -216,7 +225,17 @@ if $flag_importantFilesNotFound; then
 fi
 
 readListFile
-# for i in "${g_workingArray[@]}"
-# do
-	# echo "Yay! $i"
-# done
+g_listDataArray=("${g_workingArray[@]}")
+
+g_filterArray[0]="linux"
+
+filterPackageListByTags false
+g_listDataArray=("${g_workingArray2[@]}")
+
+
+for i in "${g_listDataArray[@]}"
+do
+	echo "Yay! $i"
+done
+
+
