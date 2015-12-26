@@ -2,7 +2,7 @@
 #----------------------------------------------
 #	labs-get setup script v1.0.0-lx
 #	Date Created: 12/22/2015
-#	Date Edited: 12/24/2015
+#	Date Edited: 12/26/2015
 #	Copyright Â ©2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 #	Description: Setup script for the linux labs-get package manager
@@ -54,6 +54,7 @@ function setPkgDir()
 
 function addToPath()
 {
+	echo "Bin folder not found in path, adding now..."
 	PATH=$PATH:$BIN_DIR
 	echo "PATH=$PATH:$BIN_DIR" >> ~/.bashrc
 }
@@ -101,9 +102,10 @@ echo "Checking PATH..."
 # insert clean runnable to bin folder and see if possible to run
 echo "echo 'Bin directory is in path!'" > $BIN_DIR/path_check.sh
 chmod +x $BIN_DIR/path_check.sh
-if [ ! -x "path_check.sh" ]; then
-	addToPath
-fi
+#if [ ! $(command -v path_check.sh > /dev/null 2>&1) ]; then
+	#addToPath
+#fi
+command -v path_check.sh > /dev/null 2>&1 || addToPath
 rm $BIN_DIR/path_check.sh
 
 # move primary script into the bin folder so it can be run
