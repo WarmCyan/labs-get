@@ -14,6 +14,7 @@ declare -a g_installedDataArray
 declare -a g_dependenciesArray
 declare -a g_tagsArray
 declare -a g_filterArray
+declare -a g_packageInstallArray
 
 g_workingData=""
 g_workingBool=false
@@ -179,6 +180,25 @@ function checkIfPackageInstalled() # $1 should be the name of the package
 		fi
 	}
 	g_workingBool=false
+}
+
+# REQUIRES: g_packageInstallArray
+function installPackageList() # $1 should be boolean, whether to force install dependencies or not
+{
+	# unset package # just in case there's an issue with this?????? TODO TODO TODO check if this is necessary in bash
+	for package in "${g_packageInstallArray[@]}"
+	do
+		checkIfPackageInstalled "$package"
+		if [[ "$g_workingBool" = false ]]; then
+			if [[ "$1" = true ]]; then
+				labs-get -install $package -forceDependencies -noSpace
+			else
+				labs-get -install $package -noSpace
+			fi
+		else
+			echo "Package '$package' was already installed, skipping..."
+		fi
+	done
 }
 
 # ASSIGNS: g_workingBool
