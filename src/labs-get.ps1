@@ -69,7 +69,7 @@ function readListFile()
 	return $packages
 }
 
-function readInstalledfile()
+function readInstalledFile()
 {
 	$packages = Get-Content -Path $INSTALLED_DATA_FILE | select -Skip 1
 	return $packages

@@ -20,7 +20,7 @@ g_workingBool=false
 
 # --------------------------- FUNCTIONS ------------------------------
 
-# ASSIGNS: g_workingArray
+# ASSIGNS: g_workingArray, g_listDataArray
 function readListFile()
 {
 	unset g_workingArray
@@ -31,9 +31,10 @@ function readListFile()
 		fi
 		((i++))
 	done < $LIST_DATA_FILE
+	g_listDataArray=("${g_workingArray[@]}")
 }
 
-# ASSIGNS: g_workingArray
+# ASSIGNS: g_workingArray, g_installedDataArray
 function readInstalledFile()
 {
 	unset g_workingArray
@@ -44,6 +45,7 @@ function readInstalledFile()
 		fi
 		((i++))
 	done < $INSTALLED_DATA_FILE
+	g_installedDataArray=("${g_workingArray[@]}")
 }
 
 # ASSIGNS: g_workingData
@@ -168,6 +170,22 @@ function shouldFilter()
 	g_workingBool=false
 }
 
+# ASSIGNS: g_workingBool
+function checkIfPackageInstalled() # $1 should be the name of the package
+{
+	unset g_workingBool
+	readInstalledFile
+	for installed in "${g_installedDataArray}"
+	{
+		getCSVCol "$installed" 0 # assigns to g_workingData
+		if [[ "$g_workingData" == "$1" ]]; then
+			g_workingBool=true
+			return
+		fi
+	}
+	g_workingBool=false
+}
+
 
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
@@ -225,7 +243,7 @@ if $flag_importantFilesNotFound; then
 fi
 
 readListFile
-g_listDataArray=("${g_workingArray[@]}")
+#g_listDataArray=("${g_workingArray[@]}")
 
 g_filterArray[0]="linux"
 
