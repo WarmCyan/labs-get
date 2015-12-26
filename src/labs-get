@@ -118,7 +118,7 @@ function filterPackageListByTags() # pass in $1 as true if installed, false if n
 function shouldFilter()
 {
 	tagFound=false
-	notTagFound=false # if negativefilter is in affect
+	negativeFilter=false
 
 	# if no filter tags found, we're good
 	if [[ "${g_filterArray[0]}" == "" ]]; then
@@ -130,14 +130,15 @@ function shouldFilter()
 	do
 		# check for first letter is '!'
 		negativeFilter=false
-		if [[ ${filter:0:1} == "!" ]]; then
+		#echo "first leter is ${filter:0:1}" # DEBUG
+		if [[ "${filter:0:1}" == "!" ]]; then
 			negativeFilter=true
 			filter="${filter:1}"
-		fi
+			#echo "filter is now $filter" # DEBUG
+		fi	
 
 		# reset booleans
 		tagFound=false
-		notTagFound=false
 
 		for tag in "${g_tagsArray[@]}"
 		do
@@ -147,20 +148,14 @@ function shouldFilter()
 				tagFound=true	
 				if [[ "$negativeFilter" = true ]]; then
 					#echo "(but wasn't supposed to match)" # DEBUG
-					notTagFound=true
+					g_workingBool=true
+					#echo "returning false" # DEBUG
+					return
 				fi
 			fi
-			if [[ "$notTagFound" = true ]]; then
-				g_workingBool=true
-				return
-			fi
 		done
-		if [[ "$notTagFound" = true ]]; then
-			g_workingBool=true
-			return
-		fi
 
-		if [[ "$tagFound" = false ]]; then
+		if [[ "$tagFound" = false && "$negativeFilter" = false ]]; then
 			g_workingBool=true
 			return
 		fi
@@ -186,7 +181,20 @@ function checkIfPackageInstalled() # $1 should be the name of the package
 	g_workingBool=false
 }
 
-
+# ASSIGNS: g_workingBool
+# REQUIRES: g_tagsArray
+function tagListContains() # $1 is tag name to search for
+{
+	unset g_workingBool
+	for tag in "${g_tagArray[@]}"
+	do
+		if [[ "$tag" == "$1" ]]; then
+			g_workingBool=true
+			return
+		fi
+	done
+	g_workingBool=false
+}
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
@@ -245,7 +253,7 @@ fi
 readListFile
 #g_listDataArray=("${g_workingArray[@]}")
 
-g_filterArray[0]="linux"
+g_filterArray[0]="!lib"
 
 filterPackageListByTags false
 g_listDataArray=("${g_workingArray2[@]}")
