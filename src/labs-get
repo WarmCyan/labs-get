@@ -228,7 +228,7 @@ function tagListContains() # $1 is tag name to search for
 	g_workingBool=false
 }
 
-function removePackageFromInstalled()
+function removePackageFromInstalled() # $1 is package name to remove
 {
 	readTotalInstalledFile
 	rm $INSTALLED_DATA_FILE
@@ -236,7 +236,7 @@ function removePackageFromInstalled()
 	do
 		getCSVCol "$installedPkg" 0
 		analyzingPkg=$g_workingData
-		if [[ "$installedPkg" -ne "$analyzingPkg" ]]; then
+		if [[ "$1" -ne "$analyzingPkg" ]]; then
 			echo "$installedPkg" >> $INSTALLED_DATA_FILE
 		fi
 	done
