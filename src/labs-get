@@ -49,6 +49,18 @@ function readInstalledFile()
 	g_installedDataArray=("${g_workingArray[@]}")
 }
 
+# ASSIGNS: g_workingArray, g_installedDataArray
+function readTotalInstalledfile()
+{
+	unset g_workingArray
+	i=0
+	while read line; do
+		g_workingArray[$i]=$line 
+		((i++))
+	done < $INSTALLED_DATA_FILE
+	g_installedDataArray=("${g_workingArray[@]}")
+}
+
 # ASSIGNS: g_workingData
 function getCSVCol() # pass in $1 as rowData, and $2 as colNum
 {
@@ -214,6 +226,20 @@ function tagListContains() # $1 is tag name to search for
 		fi
 	done
 	g_workingBool=false
+}
+
+function removePackageFromInstalled()
+{
+	readTotalInstalledFile
+	rm $INSTALLED_DATA_FILE
+	for installedPkg in "${g_installedDataArray[@]}"
+	do
+		getCSVCol "$installedPkg" 0
+		analyzingPkg=$g_workingData
+		if [[ "$installedPkg" -ne "$analyzingPkg" ]]; then
+			echo "$installedPkg" >> $INSTALLED_DATA_FILE
+		fi
+	done
 }
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
