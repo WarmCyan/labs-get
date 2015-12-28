@@ -19,6 +19,8 @@ declare -a g_pkgInfoArray
 
 g_workingData=""
 g_workingBool=false
+g_pkgInstallInstructions=""
+g_pkgRemoveInstructions=""
 
 # --------------------------- FUNCTIONS ------------------------------
 
@@ -270,16 +272,62 @@ function handlePackageDataFolder() # $1 is the REAL package name
 		fi
 	done
 	if [[ "$instructions" == "" ]]; then
-		IFS=',' read -r -a folderArray <<< "$instructions"
-		for folderName in "${folderArray[@]}"
-		do
-			if [[ ! -e "$DATA_DIR/$folderName" ]]; then
-				echo "Data folder requested, creating $DATA_DIR/$folderName"
-				mkdir "$DATA_DIR/$folderName"
-			fi
-		done
+		echo "WARNING: No data folder instructions found in the package info"
 	fi	
+	if [[ "$instructiosn" == "NONE" ]]; then
+		return
+	fi
+
+	IFS=',' read -r -a folderArray <<< "$instructions"
+	for folderName in "${folderArray[@]}"
+	do
+		if [[ ! -e "$DATA_DIR/$folderName" ]]; then
+			echo "Data folder requested, creating $DATA_DIR/$folderName"
+			mkdir "$DATA_DIR/$folderName"
+		fi
+	done
 }
+
+#checks _PKG info for install instructions
+function getPackageInstallInstructions() # $1 should be real package name
+{
+	pushd "$PKG_DIR/$1"
+	readPkgDataFile
+	instructions=""
+	for line in "${g_pkgInfoArray}"
+	do
+		if [[ "${line:0:8}" == "install=" ]]; then
+			line="${line:8}"
+			instructions="$line"
+			break
+		fi	
+	done
+	if [[ "$instructions" == "" ]]; then
+		echo "WARNING: No installation instructions found in the package info"
+	fi	
+	g_pkgInstallInstructions="$instructions"
+}
+
+#checks _PKG info for removal instructions
+function getPackageRemoveInstructions() # $1 should be real package name
+{
+	pushd "$PKG_DIR/$1"
+	readPkgDataFile
+	instructions=""
+	for line in "${g_pkgInfoArray}"
+	do
+		if [[ "${line:0:7}" == "remove=" ]]; then
+			line="${line:7}"
+			instructions="$line"
+			break
+		fi	
+	done
+	if [[ "$instructions" == "" ]]; then
+		echo "WARNING: No removal instructions found in the package info"
+	fi	
+	g_pkgRemoveInstructions="$instructions"
+}
+
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
