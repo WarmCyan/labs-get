@@ -2,7 +2,7 @@
 # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 12/26/2015
+#	Date Edited: 12/28/2015
 #	Copyright (C) 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -264,9 +264,21 @@ function handlePackageDataFolder() # $1 is the REAL package name
 	for line in "${g_pkgInfoArray}"
 	do
 		if [[ "${line:0:5}" == "data=" ]]; then
-			# TODO TODO TODO TODO TODO TODO TODO TODO
+			line="${line:5}"
+			instructions="$line"
+			break
 		fi
 	done
+	if [[ "$instructions" == "" ]]; then
+		IFS=',' read -r -a folderArray <<< "$instructions"
+		for folderName in "${folderArray[@]}"
+		do
+			if [[ ! -e "$DATA_DIR/$folderName" ]]; then
+				echo "Data folder requested, creating $DATA_DIR/$folderName"
+				mkdir "$DATA_DIR/$folderName"
+			fi
+		done
+	fi	
 }
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
