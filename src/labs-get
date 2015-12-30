@@ -395,6 +395,18 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 	fi
 }
 
+function interpretInstructions() # $1 is instruction string, $2 is package path
+{
+	if [[ "$1" == "NOINSTRUCTIONS" ]]; then
+		return
+	fi	
+	IFS=',' read -r -a instructionArray <<< "$1"
+	for instruction in "${instructionArray[@]}"
+	do
+		carryOutInstruction "$instruction" "$2"
+	done
+}
+
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
 
