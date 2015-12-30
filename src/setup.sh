@@ -56,7 +56,7 @@ function addToPath()
 {
 	echo "Bin folder not found in path, adding now..."
 	PATH=$PATH:$BIN_DIR
-	echo "PATH=$PATH:$BIN_DIR" >> ~/.bashrc
+	echo 'PATH=$PATH:$BIN_DIR' >> ~/.bashrc
 }
 
 function getGitList()
