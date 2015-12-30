@@ -515,18 +515,20 @@ if $flag_importantFilesNotFound; then
 	exit
 fi
 
-readListFile
-#g_listDataArray=("${g_workingArray[@]}")
+#readListFile
+##g_listDataArray=("${g_workingArray[@]}")
+#
+#g_filterArray[0]="!lib"
+#
+#filterPackageListByTags false
+#g_listDataArray=("${g_workingArray2[@]}")
+#
+#
+#for i in "${g_listDataArray[@]}"
+#do
+	#echo "Yay! $i"
+#done
 
-g_filterArray[0]="!lib"
-
-filterPackageListByTags false
-g_listDataArray=("${g_workingArray2[@]}")
-
-
-for i in "${g_listDataArray[@]}"
-do
-	echo "Yay! $i"
-done
-
-
+# ---- LIST ----
+if [[ "$list" == true && "$otherInfo" == ""
+# TODO TODO TODO TODO TODO TODO TODO
