@@ -311,7 +311,7 @@ function getPackageRemoveInstructions([string]$packageRealName)
 # executes single instruction
 function carryOutInstruction([string]$instruction, [string]$packagePath)
 {
-	#substitute any path variable strings
+	# substitute any path variable strings
 	$instruction = $instruction.replace('$BIN_DIR',$BIN_DIR)
 	$instruction = $instruction.replace('$PKG_DIR',$PKG_DIR)
 	$instruction = $instruction.replace('$CONF_DIR',$CONF_DIR)

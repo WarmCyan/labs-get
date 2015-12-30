@@ -1,8 +1,7 @@
-#!/bin/bash
-# ------------------------------------------------------
+#!/bin/bash # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 12/28/2015
+#	Date Edited: 12/30/2015
 #	Copyright (C) 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -23,6 +22,14 @@ g_pkgInstallInstructions=""
 g_pkgRemoveInstructions=""
 
 # --------------------------- FUNCTIONS ------------------------------
+
+# this function found from http://stackoverflow.com/questions/5031764/position-of-a-string-within-a-string-using-linux-shell-script
+# ASSIGNS: g_workingData
+function strindex()
+{
+	x="${1%%$2*}"
+	[[ $x = $1 ]] && g_workingData=-1 || g_workingData=${#x}
+}
 
 # ASSIGNS: g_workingArray, g_listDataArray
 function readListFile()
@@ -328,6 +335,50 @@ function getPackageRemoveInstructions() # $1 should be real package name
 	g_pkgRemoveInstructions="$instructions"
 }
 
+# executes single instruction
+function carryOutInstruction() # $1 should be the instruction $2 should be package path
+{
+	# substitue any path variable strings
+	instruction="${instruction/\$BIN_DIR/$BIN_DIR}"
+	instruction="${instruction/\$PKG_DIR/$PKG_DIR}"
+	instruction="${instruction/\$CONF_DIR/$CONF_DIR}"
+	instruction="${instruction/\$LIB_DIR/$LIB_DIR}"
+	instruction="${instruction/\$DATA_DIR/$DATA_DIR}"
+
+	if [[ "$instruction" == *">"* ]]; then # simple file transfer
+		strindex $instruction ">"
+		delimiterIndex=$g_workingData
+		file="${instruction:0:$delimiterIndex}"
+		dest="${instruction:$delimiterIndex+1}"
+		cp "$2/$file" "$dest"
+	fi
+	if [[ "$instruction" == *"~"* ]]; then # create simple script runnable for external
+		strindex $instruction "~"
+		delimiterIndex=$g_workingData
+		runnableName="${instruction:0:$delimiterIndex}"
+
+		instruction="${instruction:$delimiterIndex+1}"
+		strindex $instruction "~"
+		delimiterIndex=$g_workingData
+		runnableThing="${instruction:0:$delimiterIndex}"
+		
+		runnablePath="${instruction:$delimiterIndex+1}"
+		runnableContent="#!/bin/bash\n$runnableThing $@"
+		
+		echo -e "$runnableContent" > "$runnablePath/$runnableName"
+		chmod +x "$runnablePath/$runnableName"
+	fi
+	if [[ "$instruction" == *"+"* ]]; then # create folder
+		strindex $instruction "+"
+		delimiterIndex=$g_workingData
+		folderName="${instruction:0:$delimiterIndex}"
+		folderPath="${instruction:$delimiterIndex+1}"
+		mkdir "$folderPath/$folderName"
+	fi
+	if [[ "$instruction" == *"<"* ]]; then # remove files and/or folders
+		# TODO TODO TODO TODO TODO TODO TODO TODO TODO
+	fi
+}
 
 # --------------------------- MAIN PROGRAM FLOW ------------------------------
 # get command line arguments
