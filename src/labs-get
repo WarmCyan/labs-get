@@ -1,4 +1,5 @@
-#!/bin/bash # ------------------------------------------------------
+#!/bin/bash 
+# ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
 #	Date Edited: 12/30/2015
@@ -376,7 +377,21 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 		mkdir "$folderPath/$folderName"
 	fi
 	if [[ "$instruction" == *"<"* ]]; then # remove files and/or folders
-		# TODO TODO TODO TODO TODO TODO TODO TODO TODO
+		strindex $instruction "<"
+		delimiterIndex=$g_workingData
+		fileName="${instruction:0:$delimiterIndex}"
+		filePath="${instruction:$delimiterIndex+1}"
+
+		if [[ "$filePath" == *"<"* ]]; then
+			filePath="${filePath:1}"
+		fi
+
+		if [[ -d "$filePath/$fileName" ]]; then
+			rmdir -rf "$filePath/$fileName"
+			return
+		fi
+
+		rm "$filePath/$fileName"
 	fi
 }
 
