@@ -462,8 +462,33 @@ while (( "$#" )); do
 done
 
 
-# check that the necessary environemnt variables
+# check that the necessary environemnt variables exist
+flag_envVariablesNotSet=false
+if [ -z ${BIN_DIR+x} ]; then
+	echo "ERROR - Environment variable BIN_DIR not found"
+	flag_envVariablesNotSet=true
+fi
+if [ -z ${DATA_DIR+x} ]; then
+	echo "ERROR - Environment variable DATA_DIR not found"
+	flag_envVariablesNotSet=true
+fi
+if [ -z ${LIB_DIR+x} ]; then
+	echo "ERROR - Environment variable LIB_DIR not found"
+	flag_envVariablesNotSet=true
+fi
+if [ -z ${CONF_DIR+x} ]; then
+	echo "ERROR - Environment variable CONF_DIR not found"
+	flag_envVariablesNotSet=true
+fi
+if [ -z ${PKG_DIR+x} ]; then
+	echo "ERROR - Environment variable PKG_DIR not found"
+	flag_envVariablesNotSet=true
+fi
 
+if $flag_envVariablesNotSet; then
+	echo "Necessary environment variables weren't found. Please re-run the setup script that came with the package."
+	exit
+fi
 
 # shortcuts to important files
 LIST_DATA_FILE="$PKG_DIR/labs-get-list/list.dat"
