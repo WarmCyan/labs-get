@@ -2,7 +2,7 @@
 # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 12/30/2015
+#	Date Edited: 12/31/2015
 #	Copyright (C) 2015 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -177,7 +177,7 @@ function shouldFilter()
 		# check for first letter is '!'
 		negativeFilter=false
 		#echo "first leter is ${filter:0:1}" # DEBUG
-		if [[ "${filter:0:1}" == "!" ]]; then
+		if [[ "${filter:0:1}" == "^" ]]; then
 			negativeFilter=true
 			filter="${filter:1}"
 			#echo "filter is now $filter" # DEBUG
@@ -278,8 +278,9 @@ function removePackageFromInstalled() # $1 is package name to remove
 # checks _PKG info to see if a package needs data folder(s) created
 function handlePackageDataFolder() # $1 is the REAL package name
 {
-	pushd "$PKG_DIR/$1"
+	pushd "$PKG_DIR/$1" >/dev/null
 	readPkgDataFile
+	popd
 	instructions=""
 	for line in "${g_pkgInfoArray}"
 	do
@@ -329,7 +330,7 @@ function getPackageInstallInstructions() # $1 should be real package name
 #checks _PKG info for removal instructions
 function getPackageRemoveInstructions() # $1 should be real package name
 {
-	pushd "$PKG_DIR/$1"
+	pushd "$PKG_DIR/$1" 
 	readPkgDataFile
 	instructions=""
 	for line in "${g_pkgInfoArray}"
@@ -446,7 +447,7 @@ while (( "$#" )); do
 		shift
 		remove=true
 		otherInfo="$1"
-	elif [[ "$1" == "-list" ]]
+	elif [[ "$1" == "-list" ]]; then
 		list=true
 		if [[ "$2" == "installed" ]]; then
 			shift
@@ -545,10 +546,10 @@ fi
 
 # ---- LIST ----
 if [[ "$list" == true && "$otherInfo" == "update" ]]; then
-	pushd "$PKG_DIR/labs-get-list"
+	pushd "$PKG_DIR/labs-get-list" >/dev/null
 	echo "Fetching package list..."
 	git pull origin
-	popd
+	popd >/dev/null
 fi
 
 if [[ "$list" == true && "$otherInfo" == "" ]]; then
@@ -567,7 +568,7 @@ if [[ "$list" == true && "$otherInfo" == "" ]]; then
 	filterPackageListByTags false # assigns g_workingArray2
 	g_listDataArray=("${g_workingArray2[@]}")
 
-	for package in "${g_listDataArray}"
+	for package in "${g_listDataArray[@]}"
 	do
 		getCSVCol "$package" 0
 		packageName=$g_workingData
@@ -578,8 +579,31 @@ if [[ "$list" == true && "$otherInfo" == "" ]]; then
 
 		getTagList "$packageTagString" # assigns to g_workingArray
 		g_tagsArray=("${g_workingArray[@]}")
+
+		# TODO: Add color!
+		echo -e "\e[0;32m$packageName - \e[0m$packageDescription"
 	done
 	
-	# TODO: Add color!
-	echo "$packageName - $packageDescription"
+fi
+
+if [[ "$list" == true && "$otherInfo" == "installed" ]]; then
+	readInstalledFile # assigns to g_installedDataArray
+	
+	if [[ ! "$filter" == "" ]]; then
+		addToFilterArray "$filter"
+	fi
+
+	# filter the installed package list
+	filterPackageListByTags true # assigns g_workingArray2
+	g_installedDataArray=("${g_workingArray2[@]}")
+
+	for package in "${g_installedDataArray[@]}"
+	do
+		# TODO TODO TODO TODO TODO TODO TODO TODO
+		echo "thing"
+	done
+fi
+
+if [[ "$noSpace" == false ]]; then
+	echo ""
 fi
