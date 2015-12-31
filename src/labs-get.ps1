@@ -394,7 +394,7 @@ if ($list -and $otherInfo -eq "update")
 {
 	pushd $PKG_DIR\labs-get-list
 	echo "Fetching package list..."
-	git pull origin -q
+	git pull origin
 	popd
 }
 

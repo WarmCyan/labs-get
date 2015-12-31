@@ -529,6 +529,14 @@ fi
 	#echo "Yay! $i"
 #done
 
+if [[ "$noSpace" == false ]]; then
+	echo ""
+fi
+
 # ---- LIST ----
-if [[ "$list" == true && "$otherInfo" == ""
-# TODO TODO TODO TODO TODO TODO TODO
+if [[ "$list" == true && "$otherInfo" == "update" ]]; then
+	pushd "$PKG_DIR/labs-get-list"
+	echo "Fetching package list..."
+	git pull origin
+	popd
+fi
