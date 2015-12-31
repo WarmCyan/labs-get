@@ -32,6 +32,16 @@ function strindex()
 	[[ $x = $1 ]] && g_workingData=-1 || g_workingData=${#x}
 }
 
+# ADDS TO BUT DOES NOT REPLACE: g_filterArray
+function addToFilterArray() # $1 is list of comma delimited tags
+{
+	IFS=',' read -ra FILTERS <<< "$1"
+	for filter in "${FILTERS[@]}"
+	do
+		g_filterArray+=("$filter")
+	done
+}
+
 # ASSIGNS: g_workingArray, g_listDataArray
 function readListFile()
 {
@@ -241,7 +251,7 @@ function installPackageList() # $1 should be boolean, whether to force install d
 function tagListContains() # $1 is tag name to search for
 {
 	unset g_workingBool
-	for tag in "${g_tagArray[@]}"
+	for tag in "${g_tagsArray[@]}"
 	do
 		if [[ "$tag" == "$1" ]]; then
 			g_workingBool=true
@@ -539,4 +549,37 @@ if [[ "$list" == true && "$otherInfo" == "update" ]]; then
 	echo "Fetching package list..."
 	git pull origin
 	popd
+fi
+
+if [[ "$list" == true && "$otherInfo" == "" ]]; then
+	# first read in list file
+	readListFile # assigns to g_listDataArray
+	
+	if [[ ! "$filter" == "" ]]; then
+		addToFilterArray "$filter"
+	fi
+	if [[ "$override" == false ]]; then
+		default=$(head -n 1 $DEFAULT_TAGS_FILE)
+		addToFilterArray "$default"
+	fi
+
+	# filter the package list
+	filterPackageListByTags false # assigns g_workingArray2
+	g_listDataArray=("${g_workingArray2[@]}")
+
+	for package in "${g_listDataArray}"
+	do
+		getCSVCol "$package" 0
+		packageName=$g_workingData
+		getCSVCol "$package" 3
+		packageDescription=$g_workingData
+		getCSVCol "$package" 4
+		packageTagString=$g_workingData
+
+		getTagList "$packageTagString" # assigns to g_workingArray
+		g_tagsArray=("${g_workingArray[@]}")
+	done
+	
+	# TODO: Add color!
+	echo "$packageName - $packageDescription"
 fi
