@@ -715,9 +715,9 @@ if ($install -ne "")
 			Add-Content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies"
 
 			# run installation instructions
+			handlePackageDataFolder $packageRealName
 			$packageInstallation = getPackageInstallInstructions $packageRealName
 			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
-			handlePackageDataFolder $packageRealName
 
 			echo "Package '$packageName' installed"
 
