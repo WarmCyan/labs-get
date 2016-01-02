@@ -611,6 +611,38 @@ fi
 
 # TODO TODO TODO TODO: add tags listing!
 
+# ---- REMOVE ----
+if [[ "$remove" == true ]]; then
+	# validate that it's actually installed
+	checkIfPackageInstalled "$otherInfo"
+	isInstalled=$g_workingBool
+	if [[ "$isInstalled" == false ]]; then
+		echo -e "Package '$otherInfo' wasn't found.\n"
+		exit
+	fi
+
+	packageRealName=""
+
+	# find all package that require this as a dependency and warn
+	readInstalledFile
+	packages=("${g_installedDataArray[@]}")
+	uninstallInstructions=""
+	for package in "${packages[@]}"
+	do
+		# if package is current one, store removal instructions
+		getCSVCol "$package" 0
+		packageName=$g_workingData
+		if [[ "$packageName" == "$otherInfo" ]]; then
+			getCSVCol "$package" 1
+			packageRealName=$g_workingData
+			getPackageRemoveInstructions "$packageRealName"
+		fi
+
+		# get depends (add any packages to the array if it lists this package as dependency)
+		# TODO TODO TODO TODO TODO TODO TODO TODO TODO
+	done
+fi
+
 # ---- INSTALL ----
 if [[ "$install" == true ]]; then
 	# first read in file
