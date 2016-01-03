@@ -2,7 +2,7 @@
 # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 1/2/2016
+#	Date Edited: 1/3/2016
 #	Copyright (C) 2016 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -72,7 +72,7 @@ function readInstalledFile()
 }
 
 # ASSIGNS: g_workingArray, g_installedDataArray
-function readTotalInstalledfile()
+function readTotalInstalledFile()
 {
 	unset g_workingArray
 	i=0
@@ -269,7 +269,7 @@ function removePackageFromInstalled() # $1 is package name to remove
 	do
 		getCSVCol "$installedPkg" 0
 		analyzingPkg=$g_workingData
-		if [[ "$1" -ne "$analyzingPkg" ]]; then
+		if [[ "$1" != "$analyzingPkg" ]]; then
 			echo "$installedPkg" >> $INSTALLED_DATA_FILE
 		fi
 	done
@@ -402,7 +402,7 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 		fi
 
 		if [[ -d "$filePath/$fileName" ]]; then
-			rmdir -rf "$filePath/$fileName"
+			rm -rfd "$filePath/$fileName"
 			return
 		fi
 
@@ -514,15 +514,15 @@ flag_importantFilesNotFound=false
 # check for important file existence
 if [ ! -e $LIST_DATA_FILE ]; then
 	echo "ERROR - Couldn't find $LIST_DATA_FILE" #TODO: ADD COLOR	
-	$flag_importantFilesNotFound = true
+	flag_importantFilesNotFound=true
 fi
 if [ ! -e $INSTALLED_DATA_FILE ]; then
 	echo "ERROR - Couldn't find $INSTALLED_DATA_FILE" #TODO: ADD COLOR	
-	$flag_importantFilesNotFound = true
+	flag_importantFilesNotFound=true
 fi
 if [ ! -e $DEFAULT_TAGS_FILE ]; then
 	echo "ERROR - Couldn't find $DEFAULT_TAGS_FILE" #TODO: ADD COLOR	
-	$flag_importantFilesNotFound = true
+	flag_importantFilesNotFound=true
 fi
 
 if $flag_importantFilesNotFound; then
@@ -622,11 +622,11 @@ if [[ "$remove" == true ]]; then
 	fi
 
 	packageRealName=""
+	declare -a required
 
 	# find all package that require this as a dependency and warn
 	readInstalledFile
 	packages=("${g_installedDataArray[@]}")
-	uninstallInstructions=""
 	for package in "${packages[@]}"
 	do
 		# if package is current one, store removal instructions
@@ -639,8 +639,48 @@ if [[ "$remove" == true ]]; then
 		fi
 
 		# get depends (add any packages to the array if it lists this package as dependency)
-		# TODO TODO TODO TODO TODO TODO TODO TODO TODO
+		getCSVCol "$package" 4
+		depend=$g_workingData
+		getTagList "$depend"
+		g_tagsArray=("${g_workingArray[@]}")
+		tagListContains "$otherInfo"
+		containsRemove=$g_workingBool
+		if [[ "$containsRemove" == true ]]; then
+			required+=("$package")
+		fi
 	done
+
+	if [[ "${required[@]}" != "" ]]; then
+		echo -e "\e[0;31mWARNING - Following packages required this package as a dependency:"
+		for req in "${required[@]}"
+		do
+			getCSVCol "$req" 0
+			packageName=$g_workingData
+			echo "$packageName"
+		done
+
+		if [[ "$force" == false ]]; then
+			echo -ne "\e[0mConfirm package removal: (y/n) "
+			read userInput
+			if [[ "$userInput" == "N" || "$userInput" == "n" ]]; then
+				echo -e "Package uninstallation canceled.\n"
+				exit
+			fi
+		fi
+	fi
+	
+	echo "Removing package '$otherInfo'"
+
+	# find all removal instructions
+	interpretInstructions "$g_pkgRemoveInstructions" "$PKG_DIR/$packageRealName"
+
+	# delete git file
+	pushd "$PKG_DIR" >/dev/null
+	rm -rfd "$packageRealName"
+	popd >/dev/null
+
+	removePackageFromInstalled "$otherInfo"
+	echo "Package removed successfully"
 fi
 
 # ---- INSTALL ----
