@@ -746,7 +746,7 @@ if ($install -ne "")
 # ---- HELP STUFF ----
 if (!$list -and !$check -and $update -eq "" -and $install -eq "" -and $remove -eq "")
 {
-	echo "possible commands:`n`t-list [-filter {FILTERS[]}] [-override]`n`t-list update`n`t-list installed`n`t-list tags [-override]`n`t-install {PACKAGENAME}`n`t-remove {PACKAGENAME} [-force]`n`t-update {PACKAGENAME}"
+	echo "possible commands:`n`t-list [-filter {FILTERS[]}] [-override]`n`t-list update`n`t-list installed`n`t-list tags [-override]`n`t-install {PACKAGENAME}`n`t-remove {PACKAGENAME} [-force]`n`t-update {PACKAGENAME}`n`t-help"
 }
 
 if ($help)

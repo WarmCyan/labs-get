@@ -433,6 +433,7 @@ forceDependencies=false
 noSpace=false
 force=false
 override=false
+helpp=false # because apparently help is already a keyword
 filter=""
 otherInfo=""
 
@@ -450,6 +451,8 @@ while (( "$#" )); do
 		shift
 		remove=true
 		otherInfo="$1"
+	elif [[ "$1" == "-check" ]]; then
+		check=true
 	elif [[ "$1" == "-list" ]]; then
 		list=true
 		if [[ "$2" == "installed" ]]; then
@@ -470,6 +473,8 @@ while (( "$#" )); do
 	elif [[ "$1" == "-filter" ]]; then
 		shift
 		filter="$1"
+	elif [[ "$1" == "-help" ]]; then
+		helpp=true
 	fi
 
 	shift
@@ -610,6 +615,44 @@ fi
 
 # TODO TODO TODO TODO: add tags listing!
 
+# ---- CHECK DEPENDENCIES
+if [[ "$check" == true ]]; then
+	readInstalledFile
+	declare -a notInstalledList
+	for package in "${g_installedDataArray[@]}"
+	do
+		getCSVCol "$package" 0
+		packageName=$g_workingData
+		getCSVCol "$package" 4
+		packageDependencies=$g_workingData
+	
+		if [[ "$packageDependencies" != "NONE" ]]; then
+			getTagList "$packageDependencies"	
+			dependencies=("${g_workingArray[@]}")
+			for dependency in "${dependencies[@]}"
+			do
+				checkIfPackageInstalled "$dependency"
+				isInstalled=$g_workingBool
+				if [[ "$isInstalled" == false ]]; then
+					notInstalledList+=("$dependency")
+				fi
+			done
+		fi
+	done
+
+	if [[ "${notInstalledList[@]}" == "" ]]; then
+		echo "All required dependencies are installed."
+		echo ""
+		exit
+	fi
+
+	echo "The following dependencies are missing: "
+	for required in "${notInstalledList[@]}"
+	do
+		echo "$required"
+	done
+fi
+
 # ---- REMOVE ----
 if [[ "$remove" == true ]]; then
 	# validate that it's actually installed
@@ -738,7 +781,7 @@ if [[ "$update" == true ]]; then
 			declare -a notInstalledList
 			if [[ "$packageDependencies" != "NONE" ]]; then
 				getTagList "$packageDependencies"
-				dependencies=("${g_workingArray}")
+				dependencies=("${g_workingArray[@]}")
 				for $dependency in "${dependencies[@]}"
 				do
 					checkIfPackageInstalled "$dependency"	
@@ -876,6 +919,15 @@ if [[ "$install" == true ]]; then
 			break
 		fi
 	done
+fi
+
+# ---- HELP STUFF ----
+if [[ "$list" == false && "$check" == false && "$update" == false && "$install" == false && "$remove" == false ]]; then
+	echo -e "possible commands:\n\t-list [-filter {FILTERS[]}] [-override]\n\t-list update\n\t-list installed\n\t-list tags [-override]\n\t-install {PACKAGENAME}\n\t-remove {PACKAGENAME} [-force]\n\t-update {PACKAGENAME}\n\t-help"
+fi
+
+if [[ "$helpp" == true ]]; then
+	echo -e "_PKG help:\n\n\t\tinstall=\n\t\tremove=\n\t\tdata=\t(use 'NONE' if no data folder needed)\n\t\t(Note that all above lists should be comma delimited)\n\n\tInstructions:\n\t\t[filename]>[destPath]\tsimple file transfer\n\t\t[shortcutName]~[targetPathRunnable]~[destPath]\tcreate simple script to run external runnable\n\t\t[foldername]+[destPath]\tcreate folder\n\t\t[filename]<[destPath]\tdelete file/folder(note that this accepts wildcards)\n\t\t[filename]<<[destPath]\tremove runnable shortcut script\n\n\tVariables:\n\t\t\$BIN_DIR\n\t\t\$LIB_DIR\n\t\t\$CONF_DIR\n\t\t\$DATA_DIR"
 fi
 
 if [[ "$noSpace" == false ]]; then
