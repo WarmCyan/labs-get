@@ -2,7 +2,7 @@
 # ------------------------------------------------------
 #	labs-get v1.0.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 1/3/2016
+#	Date Edited: 1/4/2016
 #	Copyright (C) 2016 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -230,7 +230,6 @@ function checkIfPackageInstalled() # $1 should be the name of the package
 # REQUIRES: g_packageInstallArray
 function installPackageList() # $1 should be boolean, whether to force install dependencies or not
 {
-	# unset package # just in case there's an issue with this?????? TODO TODO TODO check if this is necessary in bash
 	for unist in "${g_packageInstallArray[@]}"
 	do
 		checkIfPackageInstalled "$unist"
@@ -669,7 +668,7 @@ if [[ "$remove" == true ]]; then
 		fi
 	fi
 	
-	echo "Removing package '$otherInfo'"
+	echo -e "\e[0mRemoving package '$otherInfo'"
 
 	# find all removal instructions
 	interpretInstructions "$g_pkgRemoveInstructions" "$PKG_DIR/$packageRealName"
@@ -681,6 +680,107 @@ if [[ "$remove" == true ]]; then
 
 	removePackageFromInstalled "$otherInfo"
 	echo "Package removed successfully"
+fi
+
+# ---- UDPATE ----
+if [[ "$update" == true ]]; then
+	# make sure package exists
+	checkIfPackageInstalled "$otherInfo"
+	isInstalled=$g_workingBool
+	if [[ "$isInstalled" == false ]]; then
+		echo -e "Package '$otherInfo' wasn't found.\n"
+		exit
+	fi
+
+	readInstalledFile
+	packageRealName=""
+	packageUninstall=""
+	for inst in "${g_installedDataArray[@]}"
+	do
+		getCSVCol "$inst" 0
+		packageName=$g_workingData
+		if [[ "$packageName" == "$otherInfo" ]]; then
+			getCSVCol "$inst" 1
+			packageRealName=$g_workingData
+			getPackageRemoveInstructions "$packageRealName"
+			break
+		fi
+	done
+
+	# run uninstall code
+	interpretInstructions "$g_pkgRemoveInstructions" "$PKG_DIR/$packageRealName"
+	removePackageFromInstalled "$otherInfo"
+
+	# update local package
+	pushd "$PKG_DIR/$packageRealName" >/dev/null
+	git pull origin
+	popd >/dev/null
+
+	# get install stuff
+	readListFile
+	for package in "${g_listDataArray[@]}"
+	do
+		getCSVCol "$package" 0
+		packageName=$g_workingData
+	
+		if [[ "$packageName" == "$otherInfo" ]]; then
+			getCSVCol "$package" 1
+			packageRealName=$g_workingData
+			getCSVCol "$package" 2
+			packageLink=$g_workingData
+			getCSVCol "$package" 5
+			packageDependencies=$g_workingData
+			getCSVCol "$package" 4
+			packageTags=$g_workingData
+			getPackageInstallInstructions "$packageRealName"
+
+			# check dependencies
+			declare -a notInstalledList
+			if [[ "$packageDependencies" != "NONE" ]]; then
+				getTagList "$packageDependencies"
+				dependencies=("${g_workingArray}")
+				for $dependency in "${dependencies[@]}"
+				do
+					checkIfPackageInstalled "$dependency"	
+					isInstalled=$g_workingBool
+					if [[ "$isInstalled" == false ]]; then
+						notInstalledList+=("$dependency")
+					fi
+				done
+			fi
+
+			echo "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies" >> "$INSTALLED_DATA_FILE"
+
+			# run installation instructions
+			handlePackageDataFolder "$packageRealName"
+			interpretInstructions "$g_pkgInstallInstructions" "$PKG_DIR/$packageRealName"
+			
+			# install any required dependencies if user requested
+			g_packageInstallArray=("${g_notInstalledPackages[@]}")
+			if [[ "${g_notInstalledPackages[@]}" != "" && "$forceDependencies" == false ]]; then
+				echo ""
+				echo "Package '$packageName' requires (but did not find) the following packages: "
+				for notInst in "${g_notInstalledPackages[@]}"
+				do	
+					echo -e "\e[0;33m$notInst"
+				done
+				echo -e "\e[0m"
+		
+				echo -e "Install packages?\n(Y - Yes [Will prompt for any of these dependencies' dependencies], N - No, A - All [Installs all dependencies and their dependencies without prompting again)\n"
+				read userOption
+				if [[ "$userOption" == "Y" || "$userOption" == "y" ]]; then
+					installPackageList false
+				fi
+				if [[ "$userOption" == "A" || "$userOption" == "a" ]]; then
+					installPackageList true
+				fi
+			elif [[ "${g_notInstalledPackages[@]}" != "" && "$forceDependencies" == true ]]; then
+				installPackageList true
+			fi
+			break
+		fi
+	done
+	echo "Package '$otherInfo' updated."
 fi
 
 # ---- INSTALL ----

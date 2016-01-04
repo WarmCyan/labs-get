@@ -1,8 +1,8 @@
 # ----------------------------------------------------
 #	labs-get v1.0.0-w
 #	Date Created: 12/18/2015
-#	Date Edited: 12/22/2015
-#	Copyright © 2015 Digital Warrior Labs
+#	Date Edited: 1/4/2016
+#	Copyright © 2016 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ----------------------------------------------------
 
@@ -576,8 +576,8 @@ if ($update -ne "")
 			add-content -Path $INSTALLED_DATA_FILE -value "$packageName,$packageRealName,$packageLink,$packageTags,$packageDependencies"
 
 			# run installation instructions
-			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
 			handlePackageDataFolder $packageRealName
+			interpretInstructions $packageInstallation "$PKG_DIR/$packageRealName"
 
 			# install any required dependencies if user requested
 			if ($notInstalledList.length -gt 0 -and $forceDependencies -ne $true) 
@@ -596,6 +596,7 @@ if ($update -ne "")
 			break
 		}
 	}
+	echo "Package '$update' updated."
 }
 
 # ---- REMOVE ----
