@@ -1,2 +1,4 @@
 - Add tags listing option to linux labs-get
 - Alphabatize listings
+- Fix setup?
+- Make sure when default-tags set, doesn't add extra space at end
