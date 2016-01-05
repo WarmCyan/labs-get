@@ -4,3 +4,4 @@
 - Make sure when default-tags set, doesn't add extra space at end (windows)
 - Problem with linux setup not properly assigning data dir?
 - Make linux setup executable (and something doesn't work when run as sudo????)
+- NOTE THAT LINUX SETUP ONLY WORKS IF YOU USE SOURCE COMMAND
