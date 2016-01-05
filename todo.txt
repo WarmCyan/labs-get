@@ -1,0 +1,2 @@
+- Add tags listing option to linux labs-get
+- Alphabatize listings
