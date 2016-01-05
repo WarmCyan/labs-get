@@ -3,3 +3,4 @@
 - Fix setup?
 - Make sure when default-tags set, doesn't add extra space at end (windows)
 - Problem with linux setup not properly assigning data dir?
+- Make linux setup executable
