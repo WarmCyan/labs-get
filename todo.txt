@@ -5,3 +5,4 @@
 - Problem with linux setup not properly assigning data dir?
 - Make linux setup executable (and something doesn't work when run as sudo????)
 - NOTE THAT LINUX SETUP ONLY WORKS IF YOU USE SOURCE COMMAND
+- For setups, add executable command (can make config setups easier, auto runs a setup script to make the hardlink)
