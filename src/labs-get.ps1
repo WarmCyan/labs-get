@@ -353,7 +353,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 		#Write-Host "Creating folder $folderPath\$folderName" # DEBUG
 		md "$folderPath\$folderName" | Out-Null
 	}
-	elseif ($instruction.StartsWith("|EXEC|")
+	elseif ($instruction.StartsWith("|EXEC|")) # execute file
 	{
 		$file = $instruction.Substring(6)
 
