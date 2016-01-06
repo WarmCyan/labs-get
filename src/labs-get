@@ -473,7 +473,7 @@ while (( "$#" )); do
 	elif [[ "$1" == "-force" ]]; then
 		force=true
 	elif [[ "$1" == "-override" ]]; then
-		override=false
+		override=true
 	elif [[ "$1" == "-filter" ]]; then
 		shift
 		filter="$1"
@@ -538,19 +538,6 @@ if $flag_importantFilesNotFound; then
 	exit
 fi
 
-#readListFile
-##g_listDataArray=("${g_workingArray[@]}")
-#
-#g_filterArray[0]="!lib"
-#
-#filterPackageListByTags false
-#g_listDataArray=("${g_workingArray2[@]}")
-#
-#
-#for i in "${g_listDataArray[@]}"
-#do
-	#echo "Yay! $i"
-#done
 
 if [[ "$noSpace" == false ]]; then
 	echo ""
