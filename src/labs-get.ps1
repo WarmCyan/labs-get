@@ -1,5 +1,5 @@
 # ----------------------------------------------------
-#	labs-get v1.0.0-w
+#	labs-get v1.1.0-w
 #	Date Created: 12/18/2015
 #	Date Edited: 1/5/2016
 #	Copyright © 2016 Digital Warrior Labs
@@ -355,7 +355,7 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 	}
 	elseif ($instruction.StartsWith("|EXEC|")
 	{
-		$file = $instruction.Substring(11)
+		$file = $instruction.Substring(6)
 
 		# run script
 		& "$file"

@@ -1,8 +1,8 @@
 #!/bin/bash 
 # ------------------------------------------------------
-#	labs-get v1.0.0-lx
+#	labs-get v1.1.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 1/4/2016
+#	Date Edited: 1/5/2016
 #	Copyright (C) 2016 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
@@ -389,6 +389,10 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 		folderName="${instruction:0:$delimiterIndex}"
 		folderPath="${instruction:$delimiterIndex+1}"
 		mkdir "$folderPath/$folderName"
+	fi
+	if [[ "$instruction" == "|EXEC|"* ]]; then # execute file
+		file="${instruction:6}"
+		$file
 	fi
 	if [[ "$instruction" == *"<"* ]]; then # remove files and/or folders
 		strindex $instruction "<"
