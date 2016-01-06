@@ -1,7 +1,7 @@
 # ----------------------------------------------------
 #	labs-get v1.0.0-w
 #	Date Created: 12/18/2015
-#	Date Edited: 1/4/2016
+#	Date Edited: 1/5/2016
 #	Copyright © 2016 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ----------------------------------------------------
@@ -352,6 +352,13 @@ function carryOutInstruction([string]$instruction, [string]$packagePath)
 
 		#Write-Host "Creating folder $folderPath\$folderName" # DEBUG
 		md "$folderPath\$folderName" | Out-Null
+	}
+	elseif ($instruction.StartsWith("|EXEC|")
+	{
+		$file = $instruction.Substring(11)
+
+		# run script
+		& "$file"
 	}
 	elseif ($instruction.IndexOf("<") -ne -1)
 	{
