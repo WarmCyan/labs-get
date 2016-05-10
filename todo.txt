@@ -1,3 +1,7 @@
+- setup needs to not recheck the path variables once they're set! (Also find way to check if setup has admin privileges and not run if it doesn't have it?
+- EVERYTHING that MIGHT vary needs to be put inside of something that can be changed in the data folder!!! 
+- Config files need to allow for changes/different scripts
+
 - Add tags listing option to linux labs-get
 - Alphabatize listings
 - Fix setup?
