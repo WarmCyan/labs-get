@@ -2,7 +2,7 @@
 ::-------------------------------------------
 ::		Labs-Get setup script v0.1.0-w
 ::		Date Created: 12/19/2015
-::		Date Edited: 6/29/2016
+::		Date Edited: 6/30/2016
 ::		Copyright © 2016 Digital Warrior Labs
 ::		Author: Nathan Martindale (WildfireXIII)
 ::		Description: Setup script for the windows labs-get package manager.
@@ -87,7 +87,7 @@ echo Checking environment variables...
 
 :GETTAGS
 	set /p tags=Enter default package tags to filter (can be changed later in the default-tags.dat file in the data directory):
-	echo %tags% > %DATA_DIR%\labs-get\default-tags.dat
+	echo %tags%>%DATA_DIR%\labs-get\default-tags.dat
 	goto SETDATAFILES
 
 :GETGITLIST

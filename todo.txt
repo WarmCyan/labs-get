@@ -1,13 +1,13 @@
-- don't throw error when try to create a folder that already exists 
+x don't throw error when try to create a folder that already exists 
 
-- setup needs to not recheck the path variables once they're set! (Also find way to check if setup has admin privileges and not run if it doesn't have it?
+x setup needs to not recheck the path variables once they're set! (Also find way to check if setup has admin privileges and not run if it doesn't have it?
 - EVERYTHING that MIGHT vary needs to be put inside of something that can be changed in the data folder!!! 
 - Config files need to allow for changes/different scripts
 
 - Add tags listing option to linux labs-get
 - Alphabatize listings
 - Fix setup?
-- Make sure when default-tags set, doesn't add extra space at end (windows)
+x Make sure when default-tags set, doesn't add extra space at end (windows)
 - Problem with linux setup not properly assigning data dir?
 - Make linux setup executable (and something doesn't work when run as sudo????)
 - NOTE THAT LINUX SETUP ONLY WORKS IF YOU USE SOURCE COMMAND
