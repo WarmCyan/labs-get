@@ -12,6 +12,22 @@
 :: PREREQ: MUST HAVE GIT INSTALLED in order to run this setup
 
 :: check existence of environment variables
+echo Setting up folder structure...
+md "/dwl"
+md "/dwl/bin"
+md "/dwl/conf"
+md "/dwl/data"
+md "/dwl/lab"
+md "/dwl/lib"
+md "/dwl/pkg"
+
+md "/dwl/lab/_env"
+md "/dwl/tmp"
+md "/dwl/tmp/bak"
+md "/dwl/tmp/bin"
+md "/dwl/tmp/swp"
+echo Folder structure created!
+
 echo Checking environment variables...
 :ENVCHECKBIN
 	if "%BIN_DIR%" == "" goto CREATEBIN
@@ -99,32 +115,37 @@ echo Checking environment variables...
 
 :CREATEBIN
 	echo No bin path defined!
-	set /p bin=Enter path to bin folder:
-	setx BIN_DIR %bin%
+	::set /p bin=Enter path to bin folder:
+	setx BIN_DIR "C:\dwl\bin"
+	set BIN_DIR=C:\dwl\bin
 	goto ENVCHECKLIB
 
 :CREATELIB
 	echo No lib path defined!
-	set /p lib=Enter path to lib folder:
-	setx LIB_DIR %lib%
+	::set /p lib=Enter path to lib folder:
+	setx LIB_DIR "C:\dwl\lib"
+	set LIB_DIR=C:\dwl\lib
 	goto ENVCHECKDATA
 
 :CREATEDATA
 	echo No data path defined!
-	set /p data=Enter path to data folder:
-	setx DATA_DIR %data%
+	::set /p data=Enter path to data folder:
+	setx DATA_DIR "C:\dwl\data"
+	set DATA_DIR=C:\dwl\data
 	goto ENVCHECKPKG
 	
 :CREATEPKG
 	echo No pkg path defined!
-	set /p pkg=Enter path to pkg folder:
-	setx PKG_DIR %pkg%
+	::set /p pkg=Enter path to pkg folder:
+	setx PKG_DIR "C:\dwl\pkg"
+	set PKG_DIR=C:\dwl\pkg
 	goto ENVCHECKPKG
 	
 :CREATECONF
 	echo No conf path defined!
-	set /p conf=Enter path to conf folder:
-	setx CONF_DIR %conf%
+	::set /p conf=Enter path to conf folder:
+	setx CONF_DIR "C:\dwl\conf"
+	set CONF_DIR=C:\dwl\conf
 	goto FINISHENV
 	
 :END
