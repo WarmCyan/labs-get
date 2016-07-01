@@ -13,19 +13,19 @@
 
 :: check existence of environment variables
 echo Setting up folder structure...
-md "/dwl"
-md "/dwl/bin"
-md "/dwl/conf"
-md "/dwl/data"
-md "/dwl/lab"
-md "/dwl/lib"
-md "/dwl/pkg"
+md "/dwl" 2>NUL
+md "/dwl/bin" 2>NUL
+md "/dwl/conf" 2>NUL
+md "/dwl/data" 2>NUL
+md "/dwl/lab" 2>NUL
+md "/dwl/lib" 2>NUL
+md "/dwl/pkg" 2>NUL
 
-md "/dwl/lab/_env"
-md "/dwl/tmp"
-md "/dwl/tmp/bak"
-md "/dwl/tmp/bin"
-md "/dwl/tmp/swp"
+md "/dwl/lab/_env" 2>NUL
+md "/dwl/tmp" 2>NUL
+md "/dwl/tmp/bak" 2>NUL
+md "/dwl/tmp/bin" 2>NUL
+md "/dwl/tmp/swp" 2>NUL
 echo Folder structure created!
 
 echo Checking environment variables...
