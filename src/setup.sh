@@ -40,7 +40,7 @@ function setDataDir()
 {
 	echo "No data path defined!"
 	echo -n "Enter path to data folder: "
-	read dataDir
+	read dataPath
 	echo "DATA_DIR=\"$dataPath\"" >> /etc/environment
 }
 
