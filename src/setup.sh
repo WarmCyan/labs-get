@@ -13,16 +13,15 @@
 
 # ------------------- FUNCTIONS ---------------------
 
-# NOTE: currently, this WIPES the master environment
 function createEnvironment()
 {
 	if [ ! -f ~/.env ]; then
 		echo "No environment file found"
 		touch ~/.env
 		echo "Environment file created!"
-	else
-		echo "Clearing existing environment file"
-		echo "" > ~/.env
+	#else
+		#echo "Clearing existing environment file"
+		#echo "" > ~/.env
 	fi
 }
 
@@ -36,9 +35,9 @@ function addLocalEnvironment()
 	#fi
 	#' >> ~/.env
 	echo '
-	# load local environment if it exists
-	[[ -f $DIR_CONF/.env_l ]] && . $DIR_CONF/.env_l
-	'
+# load local environment if it exists
+[[ -f $DIR_CONF/.env_l ]] && . $DIR_CONF/.env_l
+	' >> ~/.env
 }
 
 function setBinDir()
@@ -91,9 +90,13 @@ function setPkgDir()
 function addToPath()
 {
 	echo "Bin folder not found in path, adding now..."
-	PATH=$PATH:$BIN_DIR
+	#PATH=$PATH:$BIN_DIR
 	#echo 'PATH=$PATH:$BIN_DIR' >> ~/.bashrc
 	echo 'export PATH=${PATH}:$BIN_DIR' >> ~/.env
+	echo '
+# get environment variables
+[[ -f ~/.env ]] && . ~/.env
+	' >> ~/.bashrc
 }
 
 function getGitList()
@@ -147,6 +150,8 @@ chmod +x $BIN_DIR/path_check.sh
 #fi
 command -v path_check.sh > /dev/null 2>&1 || addToPath
 rm $BIN_DIR/path_check.sh
+
+source ~/.env
 
 # move primary script into the bin folder so it can be run
 echo "Copying primary program files..."
