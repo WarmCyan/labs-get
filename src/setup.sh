@@ -2,7 +2,7 @@
 #----------------------------------------------
 #	labs-get setup script v1.0.0-lx
 #	Date Created: 12/22/2015
-#	Date Edited: 5/5/2017
+#	Date Edited: 5/16/2017
 #	Copyright © 2017 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 #	Description: Setup script for the linux labs-get package manager
@@ -36,7 +36,7 @@ function addLocalEnvironment()
 	#' >> ~/.env
 	echo '
 # load local environment if it exists
-[[ -f $DIR_CONF/.env_l ]] && . $DIR_CONF/.env_l
+[[ -f $CONF_DIR/.env_l ]] && . $CONF_DIR/.env_l
 	' >> ~/.env
 }
 

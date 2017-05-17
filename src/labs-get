@@ -2,8 +2,8 @@
 # ------------------------------------------------------
 #	labs-get v1.1.0-lx
 #	Date Created: 12/25/2015
-#	Date Edited: 1/5/2016
-#	Copyright (C) 2016 Digital Warrior Labs
+#	Date Edited: 5/16/2017
+#	Copyright (C) 2017 Digital Warrior Labs
 #	Author: Nathan Martindale (WildfireXIII)
 # ------------------------------------------------------
 
@@ -359,6 +359,7 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 	instruction="${instruction//\$CONF_DIR/$CONF_DIR}"
 	instruction="${instruction//\$LIB_DIR/$LIB_DIR}"
 	instruction="${instruction//\$DATA_DIR/$DATA_DIR}"
+	instruction="${instruction//\$HOME/$HOME}"
 
 	if [[ "$instruction" == *">"* ]]; then # simple file transfer
 		strindex $instruction ">"
@@ -918,7 +919,7 @@ if [[ "$list" == false && "$check" == false && "$update" == false && "$install" 
 fi
 
 if [[ "$helpp" == true ]]; then
-	echo -e "_PKG help:\n\n\t\tinstall=\n\t\tremove=\n\t\tdata=\t(use 'NONE' if no data folder needed)\n\t\t(Note that all above lists should be comma delimited)\n\n\tInstructions:\n\t\t[filename]>[destPath]\tsimple file transfer\n\t\t[shortcutName]~[targetPathRunnable]~[destPath]\tcreate simple script to run external runnable\n\t\t[foldername]+[destPath]\tcreate folder\n\t\t[filename]<[destPath]\tdelete file/folder(note that this accepts wildcards)\n\t\t[filename]<<[destPath]\tremove runnable shortcut script\n\n\tVariables:\n\t\t\$BIN_DIR\n\t\t\$LIB_DIR\n\t\t\$CONF_DIR\n\t\t\$DATA_DIR"
+	echo -e "_PKG help:\n\n\t\tinstall=\n\t\tremove=\n\t\tdata=\t(use 'NONE' if no data folder needed)\n\t\t(Note that all above lists should be comma delimited)\n\n\tInstructions:\n\t\t[filename]>[destPath]\tsimple file transfer\n\t\t[shortcutName]~[targetPathRunnable]~[destPath]\tcreate simple script to run external runnable\n\t\t[foldername]+[destPath]\tcreate folder\n\t\t[filename]<[destPath]\tdelete file/folder(note that this accepts wildcards)\n\t\t[filename]<<[destPath]\tremove runnable shortcut script\n\t\t|EXEC|[filename]\truns specified shell script\n\n\tVariables:\n\t\t\$BIN_DIR\n\t\t\$LIB_DIR\n\t\t\$CONF_DIR\n\t\t\$DATA_DIR"
 fi
 
 if [[ "$noSpace" == false ]]; then
