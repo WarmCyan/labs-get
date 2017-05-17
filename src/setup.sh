@@ -87,6 +87,15 @@ function setPkgDir()
 	echo "export PKG_DIR=\"$pkgPath\"" >> ~/.env
 }
 
+function setTmpDir()
+{
+	echo "No tmp path defined!"
+	echo -n "Enter path to tmp folder: "
+	read tmpPath
+	#echo "TMP_DIR=\"$tmpPath\"" >> /etc/environment
+	echo "export TMP_DIR=\"$tmpPath\"" >> ~/.env
+}
+
 function addToPath()
 {
 	echo "Bin folder not found in path, adding now..."
@@ -134,6 +143,9 @@ if [ -z ${DATA_DIR+x} ]; then
 fi
 if [ -z ${PKG_DIR+x} ]; then 
 	setPkgDir
+fi
+if [ -z ${TMP_DIR+x} ]; then 
+	setTmpDir
 fi
 #source /etc/environment # update environment variables
 addLocalEnvironment

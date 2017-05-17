@@ -359,6 +359,7 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 	instruction="${instruction//\$CONF_DIR/$CONF_DIR}"
 	instruction="${instruction//\$LIB_DIR/$LIB_DIR}"
 	instruction="${instruction//\$DATA_DIR/$DATA_DIR}"
+	instruction="${instruction//\$TMP_DIR/$TMP_DIR}"
 	instruction="${instruction//\$HOME/$HOME}"
 
 	if [[ "$instruction" == *">"* ]]; then # simple file transfer
