@@ -390,7 +390,9 @@ function carryOutInstruction() # $1 should be the instruction $2 should be packa
 		delimiterIndex=$g_workingData
 		folderName="${instruction:0:$delimiterIndex}"
 		folderPath="${instruction:$delimiterIndex+1}"
-		mkdir "$folderPath/$folderName"
+		if [[ ! -e "$folderPath/$folderName" ]]; then
+			mkdir "$folderPath/$folderName"
+		fi
 	fi
 	if [[ "$instruction" == "|EXEC|"* ]]; then # execute file
 		file="${instruction:6}"
