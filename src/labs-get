@@ -15,6 +15,7 @@ declare -a g_dependenciesArray
 declare -a g_tagsArray
 declare -a g_filterArray
 declare -a g_packageInstallArray
+declare -a g_packageUpdateArray
 declare -a g_pkgInfoArray
 declare -a g_notInstalledPackages
 
@@ -232,7 +233,7 @@ function installPackageList() # $1 should be boolean, whether to force install d
 {
 	for unist in "${g_packageInstallArray[@]}"
 	do
-		checkIfPackageInstalled "$unist"
+		checkIfPackageInstalled "$unist" # assigns to g_workingBool
 		if [[ "$g_workingBool" = false ]]; then
 			if [[ "$1" = true ]]; then
 				labs-get -install $unist -forceDependencies -noSpace
@@ -240,8 +241,17 @@ function installPackageList() # $1 should be boolean, whether to force install d
 				labs-get -install $unist -noSpace
 			fi
 		else
-			echo "Package '$package' was already installed, skipping..."
+			echo "Package '$unist' was already installed, skipping..."
 		fi
+	done
+}
+
+# REQUIRES g_packageUpdateArray
+function updatePackageList()
+{
+	for pkg in "${g_packageUpdateArray[@]}"
+	do
+		labs-get -update $pkg -noSpace
 	done
 }
 
@@ -435,7 +445,9 @@ function interpretInstructions() # $1 is instruction string, $2 is package path
 list=false
 check=false
 update=false
+updateall=false
 install=false
+installlist=false
 remove=false
 forceDependencies=false
 noSpace=false
@@ -447,42 +459,53 @@ otherInfo=""
 
 # note that some arguments require an extra shift in order to store the data that immediately follows
 while (( "$#" )); do
-	if [[ "$1" == "-install" ]]; then
-		shift
-		install=true
-		otherInfo="$1"
-	elif [[ "$1" == "-update" ]]; then
-		shift
-		update=true
-		otherInfo="$1"
-	elif [[ "$1" == "-remove" ]]; then
-		shift
-		remove=true
-		otherInfo="$1"
-	elif [[ "$1" == "-check" ]]; then
-		check=true
-	elif [[ "$1" == "-list" ]]; then
-		list=true
-		if [[ "$2" == "installed" ]]; then
+
+	if [[ "$installlist" == true ]]; then
+		g_packageInstallArray+=("$1")
+	else
+	
+		if [[ "$1" == "-install" ]]; then
 			shift
-			otherInfo="installed"
-		elif [[ "$2" == "update" ]]; then
+			install=true
+			otherInfo="$1"
+		elif [[ "$1" == "-install-list" ]]; then
+			installlist=true
+		elif [[ "$1" == "-update" ]]; then
 			shift
-			otherInfo="update"
+			update=true
+			otherInfo="$1"
+		elif [[ "$1" == "-update-all" ]]; then
+			updateall=true
+		elif [[ "$1" == "-remove" ]]; then
+			shift
+			remove=true
+			otherInfo="$1"
+		elif [[ "$1" == "-check" ]]; then
+			check=true
+		elif [[ "$1" == "-list" ]]; then
+			list=true
+			if [[ "$2" == "installed" ]]; then
+				shift
+				otherInfo="installed"
+			elif [[ "$2" == "update" ]]; then
+				shift
+				otherInfo="update"
+			fi
+		elif [[ "$1" == "-forceDependencies" ]]; then
+			forceDependencies=true
+		elif [[ "$1" == "-noSpace" ]]; then
+			noSpace=true
+		elif [[ "$1" == "-force" ]]; then
+			force=true
+		elif [[ "$1" == "-override" ]]; then
+			override=true
+		elif [[ "$1" == "-filter" ]]; then
+			shift
+			filter="$1"
+		elif [[ "$1" == "-help" ]]; then
+			helpp=true
 		fi
-	elif [[ "$1" == "-forceDependencies" ]]; then
-		forceDependencies=true
-	elif [[ "$1" == "-noSpace" ]]; then
-		noSpace=true
-	elif [[ "$1" == "-force" ]]; then
-		force=true
-	elif [[ "$1" == "-override" ]]; then
-		override=true
-	elif [[ "$1" == "-filter" ]]; then
-		shift
-		filter="$1"
-	elif [[ "$1" == "-help" ]]; then
-		helpp=true
+
 	fi
 
 	shift
@@ -610,7 +633,7 @@ fi
 
 # TODO TODO TODO TODO: add tags listing!
 
-# ---- CHECK DEPENDENCIES
+# ---- CHECK DEPENDENCIES ----
 if [[ "$check" == true ]]; then
 	readInstalledFile
 	declare -a notInstalledList
@@ -721,6 +744,19 @@ if [[ "$remove" == true ]]; then
 fi
 
 # ---- UDPATE ----
+if [[ "$updateall" == true ]]; then
+	readInstalledFile # assigns to g_installedDataArray
+	for inst in "${g_installedDataArray[@]}"
+	
+	do
+		getCSVCol "$inst" 0
+		packageName=$g_workingData
+		g_packageUpdateArray+=("$packageName")
+	done
+
+	updatePackageList
+fi
+
 if [[ "$update" == true ]]; then
 	# make sure package exists
 	checkIfPackageInstalled "$otherInfo"
@@ -822,6 +858,10 @@ if [[ "$update" == true ]]; then
 fi
 
 # ---- INSTALL ----
+if [[ "$installlist" == true ]]; then
+	installPackageList false
+fi
+
 if [[ "$install" == true ]]; then
 	# first read in file
 	readListFile
@@ -917,8 +957,8 @@ if [[ "$install" == true ]]; then
 fi
 
 # ---- HELP STUFF ----
-if [[ "$list" == false && "$check" == false && "$update" == false && "$install" == false && "$remove" == false ]]; then
-	echo -e "possible commands:\n\t-list [-filter {FILTERS[]}] [-override]\n\t-list update\n\t-list installed\n\t-list tags [-override]\n\t-install {PACKAGENAME}\n\t-remove {PACKAGENAME} [-force]\n\t-update {PACKAGENAME}\n\t-help"
+if [[ "$list" == false && "$check" == false && "$update" == false && "$install" == false && "$remove" == false && "$updateall" == false && "$installlist" == false ]]; then
+	echo -e "possible commands:\n\t-list [-filter {FILTERS[]}] [-override]\n\t-list update\n\t-list installed\n\t-list tags [-override]\n\t-install {PACKAGENAME}\n\t-install-list {PACKAGENAME1} {PACKAGENAME2} ...\n\t-remove {PACKAGENAME} [-force]\n\t-update {PACKAGENAME}\n\t-update-all\n\t-help"
 fi
 
 if [[ "$helpp" == true ]]; then
