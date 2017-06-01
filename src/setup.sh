@@ -127,24 +127,26 @@ function getTags()
 # ------------------- MAIN PROGRAM FLOW -------------------
 
 # check existence of environment variables
+echo -n "Set environment variables? (y/n): "
+read choice
 echo "Checking environment variables..."
 createEnvironment
-if [ -z ${BIN_DIR+x} ]; then 
+if [ -z ${BIN_DIR+x} || "$choice" == "y" ]; then 
 	setBinDir
 fi
-if [ -z ${LIB_DIR+x} ]; then 
+if [ -z ${LIB_DIR+x} || "$choice" == "y" ]; then 
 	setLibDir
 fi
-if [ -z ${CONF_DIR+x} ]; then 
+if [ -z ${CONF_DIR+x} || "$choice" == "y" ]; then 
 	setConfDir
 fi
-if [ -z ${DATA_DIR+x} ]; then 
+if [ -z ${DATA_DIR+x} || "$choice" == "y" ]; then 
 	setDataDir
 fi
-if [ -z ${PKG_DIR+x} ]; then 
+if [ -z ${PKG_DIR+x} || "$choice" == "y" ]; then 
 	setPkgDir
 fi
-if [ -z ${TMP_DIR+x} ]; then 
+if [ -z ${TMP_DIR+x} || "$choice" == "y" ]; then 
 	setTmpDir
 fi
 #source /etc/environment # update environment variables
